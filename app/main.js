@@ -1,3 +1,602 @@
-const phaseLabel = "Phase 2";
+const phaseLabel = "Phase 3";
+
+const sampleCsv = `description,title,source
+The agency shall publish the notice.,Publication duty,Regulation A
+The committee may review the proposal.,Review authority,Policy B
+The officer must record the decision.,Recordkeeping duty,Procedure C`;
+
+const state = {
+  format: "csv",
+  mappingRows: [
+    { sourceColumn: "description", targetProperty: "schema:description" },
+    { sourceColumn: "title", targetProperty: "schema:name" },
+  ],
+  mappingManifest: null,
+  dataset: null,
+  run: null,
+  outputView: "dataset",
+};
+
+const el = {
+  formatSelect: document.querySelector("#formatSelect"),
+  fileInput: document.querySelector("#fileInput"),
+  loadSample: document.querySelector("#loadSample"),
+  sourceInput: document.querySelector("#sourceInput"),
+  inputStatus: document.querySelector("#inputStatus"),
+  hasHeaderRow: document.querySelector("#hasHeaderRow"),
+  jsonPointer: document.querySelector("#jsonPointer"),
+  mappingRows: document.querySelector("#mappingRows"),
+  mappingPreview: document.querySelector("#mappingPreview"),
+  addMapping: document.querySelector("#addMapping"),
+  normalizeData: document.querySelector("#normalizeData"),
+  runEnrichment: document.querySelector("#runEnrichment"),
+  recordCount: document.querySelector("#recordCount"),
+  enrichedCount: document.querySelector("#enrichedCount"),
+  warningCount: document.querySelector("#warningCount"),
+  graphCount: document.querySelector("#graphCount"),
+  sourcePath: document.querySelector("#sourcePath"),
+  resultsBody: document.querySelector("#resultsBody"),
+  outputPreview: document.querySelector("#outputPreview"),
+};
 
 document.documentElement.dataset.phase = phaseLabel;
+
+el.loadSample.addEventListener("click", () => {
+  el.formatSelect.value = "csv";
+  state.format = "csv";
+  el.sourceInput.value = sampleCsv;
+  el.hasHeaderRow.checked = true;
+  el.inputStatus.textContent = "Sample CSV loaded locally.";
+  renderMapping();
+  normalize();
+});
+
+el.fileInput.addEventListener("change", async () => {
+  const file = el.fileInput.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  el.sourceInput.value = text;
+  const lowerName = file.name.toLowerCase();
+  if (lowerName.endsWith(".csv")) el.formatSelect.value = "csv";
+  if (lowerName.endsWith(".json")) el.formatSelect.value = "json";
+  if (lowerName.endsWith(".jsonld")) el.formatSelect.value = "jsonld";
+  state.format = el.formatSelect.value;
+  el.inputStatus.textContent = `${file.name} loaded locally.`;
+  normalize();
+});
+
+el.formatSelect.addEventListener("change", () => {
+  state.format = el.formatSelect.value;
+  renderMapping();
+});
+
+el.addMapping.addEventListener("click", () => {
+  readMappingRows();
+  state.mappingRows.push({ sourceColumn: "", targetProperty: "schema:description" });
+  renderMapping();
+});
+
+el.normalizeData.addEventListener("click", normalize);
+el.runEnrichment.addEventListener("click", runEnrichment);
+
+document.querySelectorAll("[data-output]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.outputView = button.dataset.output;
+    document.querySelectorAll("[data-output]").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    renderOutput();
+  });
+});
+
+document.querySelectorAll("[data-download]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const kind = button.dataset.download;
+    const content = exportFor(kind);
+    const extension = kind === "csv" ? "csv" : "jsonld";
+    const type = kind === "csv" ? "text/csv" : "application/ld+json";
+    downloadText(`semanticore-${kind}.${extension}`, content, type);
+  });
+});
+
+function normalize() {
+  readMappingRows();
+  state.mappingManifest = buildMappingManifest();
+  const source = el.sourceInput.value.trim();
+  if (!source) {
+    state.dataset = null;
+    state.run = null;
+    el.inputStatus.textContent = "No source data yet.";
+    renderAll();
+    return;
+  }
+
+  try {
+    if (state.format === "csv") {
+      state.dataset = csvToDataset(source, state.mappingManifest);
+    } else if (state.format === "json") {
+      state.dataset = jsonToDataset(JSON.parse(source), state.mappingManifest, el.jsonPointer.value.trim());
+    } else {
+      state.dataset = jsonLdToDataset(JSON.parse(source));
+    }
+    state.run = null;
+    el.inputStatus.textContent = `Normalized ${state.dataset["sc:records"].length} record(s).`;
+  } catch (error) {
+    state.dataset = null;
+    state.run = {
+      records: [],
+      graphs: [],
+      warnings: [makeWarning("sc:UnsupportedInputShape", error.message || String(error))],
+    };
+    el.inputStatus.innerHTML = `<span class="danger">${escapeHtml(error.message || String(error))}</span>`;
+  }
+  renderAll();
+}
+
+function runEnrichment() {
+  if (!state.dataset) normalize();
+  if (!state.dataset) return;
+
+  const graphs = [];
+  const warnings = [];
+  const records = state.dataset["sc:records"].map((record, index) => {
+    const result = enrichRecord(record, index);
+    if (result.graph) graphs.push(result.graph);
+    warnings.push(...result.warnings);
+    return result.record;
+  });
+
+  state.run = {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:run:browser-demo",
+    "@type": "sc:TransformResult",
+    "sc:records": records,
+    "sc:graphs": graphs,
+    "sc:warnings": warnings,
+    records,
+    graphs,
+    warnings,
+  };
+  el.inputStatus.textContent = `Enriched ${records.length} record(s) locally.`;
+  renderAll();
+}
+
+function enrichRecord(record, index) {
+  const warnings = [];
+  const sourceProperty = firstTextProperty();
+  const source = record["sc:source"] || {};
+  const sourceText = source[sourceProperty];
+
+  if (typeof sourceText !== "string" || sourceText.trim() === "") {
+    warnings.push(makeWarning("sc:MissingSourceText", "No string value was found at the configured source property path.", record["@id"]));
+    return {
+      record: {
+        ...record,
+        "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
+        "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSkipped", "", null, null),
+      },
+      graph: null,
+      warnings,
+    };
+  }
+
+  const graph = buildGraph(record["@id"], index, sourceText);
+  const summary = summarizeGraph(graph);
+  return {
+    record: {
+      ...record,
+      "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
+      "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSucceeded", sourceText, graph["@id"], summary),
+    },
+    graph,
+    warnings,
+  };
+}
+
+function makeEnrichment(recordId, index, status, sourceText, graphId, summary) {
+  const enrichment = {
+    "@id": `urn:semanticore:enrichment:${stableFragment(recordId)}:${index}`,
+    "@type": "sc:TagTeamEnrichment",
+    "sc:status": { "@id": status },
+    "sc:sourcePropertyPath": {
+      "@type": "sc:PropertyPath",
+      "sc:path": [{ "@id": "sc:source" }, { "@id": firstTextProperty() }],
+      "sc:multiValuePolicy": { "@id": "sc:EnrichEachValue" },
+    },
+    "sc:tagTeamVersion": "7.0.0-stub",
+  };
+  if (sourceText) enrichment["sc:sourceText"] = sourceText;
+  if (graphId) enrichment["sc:namedGraph"] = { "@id": graphId };
+  if (summary) enrichment["sc:summary"] = summary;
+  return enrichment;
+}
+
+function buildGraph(recordId, index, text) {
+  const words = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .split(/\s+/)
+    .filter((word) => word.length > 4);
+  const uniqueWords = [...new Set(words)].slice(0, 4);
+  const deontic = /\b(shall|must|required|may|should)\b/i.test(text);
+  const nodes = uniqueWords.map((word) => ({
+    "@id": `urn:tagteam:entity:${stableFragment(word)}`,
+    "@type": "tagteam:Entity",
+    "schema:name": word,
+  }));
+  if (deontic) {
+    nodes.push({
+      "@id": `urn:tagteam:act:${stableFragment(recordId)}:${index}`,
+      "@type": ["tagteam:Act", "tagteam:DeonticSignal"],
+      "schema:name": "deontic signal",
+      "tagteam:deontic": true,
+    });
+  }
+  return {
+    "@context": coreContext(),
+    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+    "@type": "sc:TagTeamGraph",
+    "sc:graphForRecord": { "@id": recordId },
+    "sc:graphIndex": index,
+    "@graph": nodes,
+  };
+}
+
+function summarizeGraph(graph) {
+  return {
+    "@type": "sc:TagTeamSummary",
+    "sc:entityCount": graph["@graph"].filter((node) => node["@type"] === "tagteam:Entity").length,
+    "sc:actCount": graph["@graph"].filter((node) => Array.isArray(node["@type"]) && node["@type"].includes("tagteam:Act")).length,
+    "sc:roleCount": 0,
+    "sc:deonticDetected": graph["@graph"].some((node) => node["tagteam:deontic"] === true),
+  };
+}
+
+function csvToDataset(text, mappingManifest) {
+  const rows = parseCsv(text);
+  const headers = mappingManifest["sc:hasHeaderRow"] ? rows[0] || [] : (rows[0] || []).map((_value, index) => String(index));
+  const dataRows = mappingManifest["sc:hasHeaderRow"] ? rows.slice(1) : rows;
+  const records = dataRows.map((row, index) => {
+    const source = {};
+    mappingManifest.columnMappings.forEach((mapping) => {
+      const columnIndex = headers.indexOf(mapping["sc:sourceColumn"]);
+      source[mapping["sc:targetProperty"]["@id"]] = columnIndex >= 0 ? row[columnIndex] || "" : "";
+    });
+    return makeRecord(index, source);
+  });
+  return makeDataset(records, mappingManifest);
+}
+
+function jsonToDataset(input, mappingManifest, pointer) {
+  const selected = pointer ? resolveJsonPointer(input, pointer) : input;
+  const rows = Array.isArray(selected) ? selected : [selected];
+  if (!rows.every((row) => row && typeof row === "object" && !Array.isArray(row))) {
+    throw new Error("JSON input must resolve to an object or array of objects.");
+  }
+  const records = rows.map((row, index) => {
+    const source = {};
+    mappingManifest.columnMappings.forEach((mapping) => {
+      const value = row[mapping["sc:sourceColumn"]];
+      source[mapping["sc:targetProperty"]["@id"]] = typeof value === "string" ? value : JSON.stringify(value ?? "");
+    });
+    return makeRecord(index, source);
+  });
+  return makeDataset(records, mappingManifest);
+}
+
+function jsonLdToDataset(input) {
+  if (input?.["@type"] === "sc:Dataset" && Array.isArray(input["sc:records"])) {
+    const badRecord = input["sc:records"].find((record) => !record["@id"] || record["@id"].startsWith("_:"));
+    if (badRecord) throw new Error("JSON-LD records must have stable non-blank @id values.");
+    return structuredClone(input);
+  }
+  throw new Error("JSON-LD input must be a sc:Dataset with sc:records.");
+}
+
+function makeDataset(records, mappingManifest) {
+  return {
+    "@context": {
+      ...coreContext(),
+      records: { "@id": "sc:records", "@container": "@list" },
+    },
+    "@id": "urn:semanticore:dataset:browser-demo",
+    "@type": "sc:Dataset",
+    "schema:name": "Browser demo dataset",
+    "sc:recordIdStrategy": { "@id": "sc:RowIndexRecordId" },
+    "sc:mappingManifest": { "@id": mappingManifest["@id"] },
+    "sc:records": records,
+  };
+}
+
+function makeRecord(index, source) {
+  return {
+    "@id": `urn:semanticore:record:browser-demo:${index}`,
+    "@type": "sc:SourceRecord",
+    "sc:source": source,
+  };
+}
+
+function buildMappingManifest() {
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:mapping:browser-demo",
+    "@type": "sc:MappingManifest",
+    "sc:sourceFormat": { "@id": `sc:${state.format.toUpperCase()}` },
+    "sc:hasHeaderRow": el.hasHeaderRow.checked,
+    "sc:recordIdStrategy": { "@id": "sc:RowIndexRecordId" },
+    "sc:mappingInference": { "@id": "sc:ExplicitMapping" },
+    columnMappings: state.mappingRows.map((row) => ({
+      "@type": "sc:ColumnMapping",
+      "sc:sourceColumn": row.sourceColumn,
+      "sc:targetProperty": { "@id": row.targetProperty },
+      "sc:valueDatatype": { "@id": "xsd:string" },
+    })),
+  };
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"';
+      index++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") index++;
+      row.push(cell);
+      if (row.some((item) => item.length > 0)) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+  row.push(cell);
+  if (row.some((item) => item.length > 0)) rows.push(row);
+  return rows;
+}
+
+function resolveJsonPointer(input, pointer) {
+  if (pointer === "") return input;
+  if (!pointer.startsWith("/")) throw new Error("JSON Pointer must start with '/'.");
+  return pointer
+    .slice(1)
+    .split("/")
+    .map((segment) => segment.replace(/~1/g, "/").replace(/~0/g, "~"))
+    .reduce((current, segment) => {
+      if (Array.isArray(current)) return current[Number(segment)];
+      if (current && typeof current === "object" && segment in current) return current[segment];
+      throw new Error(`JSON Pointer segment '${segment}' does not resolve.`);
+    }, input);
+}
+
+function renderAll() {
+  renderStats();
+  renderMappingPreview();
+  renderResults();
+  renderOutput();
+}
+
+function renderMapping() {
+  el.mappingRows.innerHTML = "";
+  state.mappingRows.forEach((row, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "mapping-row";
+    wrapper.innerHTML = `
+      <input type="text" value="${escapeAttribute(row.sourceColumn)}" aria-label="Source field ${index + 1}" data-source-index="${index}">
+      <input type="text" value="${escapeAttribute(row.targetProperty)}" aria-label="JSON-LD property ${index + 1}" data-target-index="${index}">
+      <button type="button" data-remove-index="${index}" aria-label="Remove mapping ${index + 1}">Remove</button>
+    `;
+    el.mappingRows.appendChild(wrapper);
+  });
+  el.mappingRows.querySelectorAll("input").forEach((input) => {
+    input.addEventListener("input", () => {
+      readMappingRows();
+      renderMappingPreview();
+      renderSourcePath();
+    });
+  });
+  el.mappingRows.querySelectorAll("[data-remove-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      readMappingRows();
+      state.mappingRows.splice(Number(button.dataset.removeIndex), 1);
+      renderMapping();
+    });
+  });
+  renderMappingPreview();
+  renderSourcePath();
+}
+
+function readMappingRows() {
+  const rows = [];
+  el.mappingRows.querySelectorAll(".mapping-row").forEach((row) => {
+    const source = row.querySelector("[data-source-index]").value.trim();
+    const target = row.querySelector("[data-target-index]").value.trim();
+    if (source || target) rows.push({ sourceColumn: source, targetProperty: target });
+  });
+  state.mappingRows = rows.length > 0 ? rows : [{ sourceColumn: "description", targetProperty: "schema:description" }];
+}
+
+function renderMappingPreview() {
+  state.mappingManifest = buildMappingManifest();
+  el.mappingPreview.textContent = stableStringify(state.mappingManifest, 2);
+}
+
+function renderStats() {
+  const records = state.run?.records || state.dataset?.["sc:records"] || [];
+  el.recordCount.textContent = String(records.length);
+  el.enrichedCount.textContent = String((state.run?.records || []).filter((record) => {
+    const enrichment = record["sc:semanticEnrichment"];
+    return enrichment?.["sc:status"]?.["@id"] === "sc:EnrichmentSucceeded";
+  }).length);
+  el.warningCount.textContent = String(state.run?.warnings?.length || 0);
+  el.graphCount.textContent = String(state.run?.graphs?.length || 0);
+}
+
+function renderSourcePath() {
+  el.sourcePath.textContent = `sc:source / ${firstTextProperty()}`;
+}
+
+function renderResults() {
+  const records = state.run?.records || state.dataset?.["sc:records"] || [];
+  if (records.length === 0) {
+    el.resultsBody.innerHTML = '<tr><td colspan="7">No records yet.</td></tr>';
+    return;
+  }
+  el.resultsBody.innerHTML = records.map((record) => {
+    const enrichment = record["sc:semanticEnrichment"];
+    const summary = enrichment?.["sc:summary"];
+    const recordWarnings = (state.run?.warnings || [])
+      .filter((warning) => warning["sc:record"]?.["@id"] === record["@id"])
+      .map((warning) => warning["sc:code"]["@id"])
+      .join(" ");
+    return `
+      <tr>
+        <td><code>${escapeHtml(record["@id"])}</code></td>
+        <td>${escapeHtml(enrichment?.["sc:status"]?.["@id"] || "sc:SourceRecord")}</td>
+        <td>${escapeHtml(enrichment?.["sc:sourceText"] || firstSourceText(record) || "")}</td>
+        <td>${summary?.["sc:entityCount"] ?? 0}</td>
+        <td>${summary?.["sc:actCount"] ?? 0}</td>
+        <td><code>${escapeHtml(enrichment?.["sc:namedGraph"]?.["@id"] || "")}</code></td>
+        <td>${escapeHtml(recordWarnings)}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderOutput() {
+  el.outputPreview.textContent = exportFor(state.outputView);
+}
+
+function exportFor(kind) {
+  if (kind === "dataset") return stableStringify(state.dataset || {}, 2);
+  if (kind === "enriched" || kind === "jsonld") return stableStringify(state.run || {}, 2);
+  if (kind === "graphs") {
+    return stableStringify({
+      "@context": coreContext(),
+      "@id": "urn:semanticore:graph-bundle:browser-demo",
+      "@type": "sc:GraphBundle",
+      "sc:graphs": state.run?.graphs || [],
+    }, 2);
+  }
+  if (kind === "warnings") return stableStringify(state.run?.warnings || [], 2);
+  if (kind === "csv") return csvSummary();
+  return "";
+}
+
+function csvSummary() {
+  const header = "recordId,enrichmentStatus,sourceText,entityCount,actCount,roleCount,deonticDetected,namedGraphId,warningErrorCodes";
+  const rows = (state.run?.records || []).map((record) => {
+    const enrichment = record["sc:semanticEnrichment"] || {};
+    const summary = enrichment["sc:summary"] || {};
+    const warningCodes = (state.run?.warnings || [])
+      .filter((warning) => warning["sc:record"]?.["@id"] === record["@id"])
+      .map((warning) => warning["sc:code"]["@id"])
+      .join(" ");
+    return [
+      record["@id"],
+      enrichment["sc:status"]?.["@id"] || "sc:EnrichmentSkipped",
+      enrichment["sc:sourceText"] || "",
+      String(summary["sc:entityCount"] || 0),
+      String(summary["sc:actCount"] || 0),
+      String(summary["sc:roleCount"] || 0),
+      String(summary["sc:deonticDetected"] || false),
+      enrichment["sc:namedGraph"]?.["@id"] || "",
+      warningCodes,
+    ].map(escapeCsvCell).join(",");
+  });
+  return `${[header, ...rows].join("\n")}\n`;
+}
+
+function downloadText(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function firstTextProperty() {
+  return state.mappingRows.find((row) => row.targetProperty.includes("description"))?.targetProperty ||
+    state.mappingRows[0]?.targetProperty ||
+    "schema:description";
+}
+
+function firstSourceText(record) {
+  const source = record["sc:source"] || {};
+  return source[firstTextProperty()] || "";
+}
+
+function makeWarning(code, message, recordId = "") {
+  const warning = {
+    "@id": `urn:semanticore:warning:${stableFragment(recordId || "browser")}:${stableFragment(code)}`,
+    "@type": "sc:Warning",
+    "sc:code": { "@id": code },
+    "sc:message": message,
+    "sc:recoverable": true,
+  };
+  if (recordId) warning["sc:record"] = { "@id": recordId };
+  return warning;
+}
+
+function coreContext() {
+  return {
+    sc: "https://semanticore.fandaws.org/ns/",
+    tagteam: "https://tagteam.fandaws.org/ontology/",
+    schema: "https://schema.org/",
+    xsd: "http://www.w3.org/2001/XMLSchema#",
+    "sc:code": { "@type": "@id" },
+    "sc:record": { "@type": "@id" },
+    "sc:status": { "@type": "@id" },
+    "sc:namedGraph": { "@type": "@id" },
+  };
+}
+
+function stableStringify(value, spaces = 0) {
+  return JSON.stringify(sortJson(value), null, spaces);
+}
+
+function sortJson(value) {
+  if (Array.isArray(value)) return value.map(sortJson);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortJson(value[key])]));
+  }
+  return value;
+}
+
+function stableFragment(value) {
+  return String(value).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "id";
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/'/g, "&#39;");
+}
+
+function escapeCsvCell(value) {
+  const text = String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+renderMapping();
+el.sourceInput.value = sampleCsv;
+normalize();

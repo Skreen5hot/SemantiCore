@@ -133,7 +133,7 @@ Extend the template tests with SemantiCore-specific conformance cases.
 
 **Goal:** Add local-first adapters around the pure kernel.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 Planned adapter surfaces:
 - [x] CSV ingestion with mapping manifest.
@@ -155,7 +155,7 @@ Planned adapter surfaces:
 
 **Goal:** Wire the browser app to a local TagTeam runtime and ontology/session management workflow.
 
-**Status:** Not Started
+**Status:** In Progress
 
 Planned surfaces:
 - Local TagTeam bundle loading.

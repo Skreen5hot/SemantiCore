@@ -277,7 +277,7 @@ Add adapter test coverage.
 **Exit Criteria**
 - [x] Local files can be converted to kernel input and exported without browser UI.
 - [x] Tests pass.
-- [ ] Human reviewer completes [PHASE2_EXIT_REVIEW.md](./PHASE2_EXIT_REVIEW.md) and records approval to begin Phase 3.
+- [x] Human reviewer completes [PHASE2_EXIT_REVIEW.md](./PHASE2_EXIT_REVIEW.md) and records approval to begin Phase 3.
 
 **Non-Goals**
 - No IndexedDB.
@@ -301,6 +301,8 @@ Add adapter test coverage.
 - Phase 1 kernel.
 - Phase 2 adapters.
 - GitHub Pages workflow active.
+
+**Status:** In Progress
 
 ### 3.1 App Build Strategy
 

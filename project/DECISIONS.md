@@ -137,6 +137,37 @@
 
 ---
 
+## ADR-009: Require Visible Product Evidence Starting in Phase 3
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 3 and later reviews must include visible browser behavior and demo steps, not only file diffs and test output.
+
+**Context:** The PO and human reviewer approved Phase 2 but noted that reviewing invisible kernel and adapter changes risks becoming a rubber stamp. That was acceptable for early infrastructure phases, but the project now needs product evidence: something to click, inspect, and export.
+
+**Consequences:**
+- Phase 3 must make the GitHub Pages app visibly useful.
+- Review packets must include demo steps and screen-level acceptance criteria.
+- The app should include a built-in sample flow so review does not depend on preparing external files.
+- Future approvals should answer what the PO can see, click, import, inspect, or export.
+
+---
+
+## ADR-010: Use a Static No-Build Browser MVP for Phase 3
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 3 will implement the GitHub Pages MVP as static HTML, CSS, and browser JavaScript in `app/` without adding a required bundler or server.
+
+**Context:** SemantiCore must remain edge-canonical and GitHub Pages currently publishes `app/` directly. A no-build MVP lets the PO see the workflow immediately while preserving the later option to introduce a browser bundle strategy if needed.
+
+**Consequences:**
+- The Phase 3 UI can run directly from GitHub Pages.
+- Browser code may mirror Phase 1/2 behavior for demonstration until a formal build step wires shared TypeScript modules into `app/`.
+- Any future bundling remains an optimization, not a core architectural requirement.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

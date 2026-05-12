@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SemantiCore</title>
+  <title>SemantiCore Workbench</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -12,59 +12,150 @@
       <p class="eyebrow">Edge-canonical semantic enrichment</p>
       <h1>SemantiCore</h1>
     </div>
-    <a class="spec-link" href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
+    <nav class="toplinks" aria-label="Project links">
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE3_EXIT_REVIEW.md">Phase 3 Review</a>
+    </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <h2>Structured data in. Deterministic JSON-LD graphs out.</h2>
+        <p class="stage">Phase 3 in progress</p>
+        <h2>Import data, map fields, enrich locally, inspect JSON-LD.</h2>
         <p>
-          SemantiCore will enrich CSV, JSON, and JSON-LD records with local TagTeam.js semantic graphs while preserving the edge-canonical rule: browser or Node, no required infrastructure.
+          This browser MVP runs a local sample workflow with deterministic stub TagTeam output. It does not upload data or require a server.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Phase 2 ready for review</strong>
+          <strong>Visible workbench MVP</strong>
         </div>
-        <p>Kernel and local ingestion/export adapters are implemented. The functional browser workbench begins after Phase 2 approval.</p>
+        <p>Phase 1 kernel and Phase 2 adapters now have a click-through review surface.</p>
       </div>
     </section>
 
-    <section class="workspace" aria-label="Workbench preview">
-      <nav class="rail" aria-label="Workbench sections">
-        <button class="active" type="button">Import</button>
-        <button type="button">Mapping</button>
-        <button type="button">Ontologies</button>
-        <button type="button">Enrich</button>
-        <button type="button">Export</button>
-      </nav>
-
-      <div class="preview">
-        <h2>Workbench Shell</h2>
-        <p>
-          This static page is the GitHub Pages publication target. The pure kernel and local adapters now exist in the repo; UI wiring starts in Phase 3.
-        </p>
-        <div class="grid">
-          <article>
-            <h3>Input</h3>
-            <p>CSV, JSON, or JSON-LD adapters normalize records into canonical JSON-LD.</p>
-          </article>
-          <article>
-            <h3>Pathing</h3>
-            <p>Semantic property paths select string literals independent of JSON-LD compaction.</p>
-          </article>
-          <article>
-            <h3>TagTeam</h3>
-            <p>A pinned local TagTeam runtime produces named graph JSON-LD for each selected value.</p>
-          </article>
-          <article>
-            <h3>State</h3>
-            <p>IndexedDB and filesystem persistence remain adapters, never kernel requirements.</p>
-          </article>
+    <section class="workbench" aria-label="SemantiCore workbench">
+      <section class="panel import-panel" aria-labelledby="import-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">1</p>
+            <h2 id="import-title">Input</h2>
+          </div>
+          <button id="loadSample" type="button">Load Sample CSV</button>
         </div>
+
+        <div class="field-row">
+          <label for="formatSelect">Format</label>
+          <select id="formatSelect">
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+            <option value="jsonld">JSON-LD</option>
+          </select>
+          <label class="file-button" for="fileInput">Import File</label>
+          <input id="fileInput" type="file" accept=".csv,.json,.jsonld,application/json,text/csv">
+        </div>
+
+        <label for="sourceInput">Source data</label>
+        <textarea id="sourceInput" spellcheck="false"></textarea>
+        <p id="inputStatus" class="muted">Load the sample or import a local file to begin.</p>
+      </section>
+
+      <section class="panel mapping-panel" aria-labelledby="mapping-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">2</p>
+            <h2 id="mapping-title">Mapping</h2>
+          </div>
+          <button id="addMapping" type="button">Add Mapping</button>
+        </div>
+
+        <div class="field-row">
+          <label class="checkbox">
+            <input id="hasHeaderRow" type="checkbox" checked>
+            Header row
+          </label>
+          <label for="jsonPointer">JSON Pointer</label>
+          <input id="jsonPointer" type="text" value="/records" placeholder="/records">
+        </div>
+
+        <div class="mapping-table" role="table" aria-label="Mapping manifest editor">
+          <div role="row" class="mapping-head">
+            <span role="columnheader">Source field</span>
+            <span role="columnheader">JSON-LD property</span>
+          </div>
+          <div id="mappingRows"></div>
+        </div>
+
+        <details>
+          <summary>Mapping manifest JSON-LD</summary>
+          <pre id="mappingPreview"></pre>
+        </details>
+      </section>
+
+      <section class="panel run-panel" aria-labelledby="run-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">3</p>
+            <h2 id="run-title">Run</h2>
+          </div>
+          <div class="button-group">
+            <button id="normalizeData" type="button">Normalize</button>
+            <button id="runEnrichment" class="primary" type="button">Run Enrichment</button>
+          </div>
+        </div>
+
+        <dl class="stats" aria-label="Run summary">
+          <div><dt>Records</dt><dd id="recordCount">0</dd></div>
+          <div><dt>Enriched</dt><dd id="enrichedCount">0</dd></div>
+          <div><dt>Warnings</dt><dd id="warningCount">0</dd></div>
+          <div><dt>Graphs</dt><dd id="graphCount">0</dd></div>
+        </dl>
+
+        <p class="path-display">
+          Source path: <code id="sourcePath">sc:source / schema:description</code>
+        </p>
+      </section>
+    </section>
+
+    <section class="results" aria-label="Results">
+      <div class="results-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Record</th>
+              <th>Status</th>
+              <th>Source Text</th>
+              <th>Entities</th>
+              <th>Acts</th>
+              <th>Graph</th>
+              <th>Warnings</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="7">No run yet.</td></tr>
+          </tbody>
+        </table>
       </div>
+
+      <section class="output-panel" aria-label="Output inspector">
+        <div class="output-toolbar">
+          <div class="tabs" role="tablist" aria-label="Output views">
+            <button class="active" type="button" data-output="dataset">Dataset</button>
+            <button type="button" data-output="enriched">Enriched JSON-LD</button>
+            <button type="button" data-output="graphs">Graphs</button>
+            <button type="button" data-output="warnings">Warnings</button>
+            <button type="button" data-output="csv">CSV Summary</button>
+          </div>
+          <div class="button-group">
+            <button type="button" data-download="jsonld">Download JSON-LD</button>
+            <button type="button" data-download="graphs">Download Graphs</button>
+            <button type="button" data-download="csv">Download CSV</button>
+          </div>
+        </div>
+        <pre id="outputPreview"></pre>
+      </section>
     </section>
   </main>
 
