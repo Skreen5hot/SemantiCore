@@ -71,6 +71,22 @@
 
 ---
 
+## ADR-005: Approve Phase 0 and Begin Phase 1
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 0 is approved. Begin Phase 1: SemantiCore Kernel Contract.
+
+**Context:** Human review approved the repository activation and app runway. The repo now has SemantiCore identity, published spec, detailed roadmap, GitHub Pages shell, Pages workflow, and preserved kernel purity baseline.
+
+**Consequences:**
+- Phase 0 is marked complete.
+- Phase 1 is marked in progress.
+- Implementation work should begin with pure kernel types and fixtures, not adapters or UI.
+- The Phase 1 exit review must be completed before Phase 2 begins.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

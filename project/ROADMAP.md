@@ -8,7 +8,7 @@ The template's `docs/` directory defines the architecture contract. The `project
 
 **Goal:** Convert the template repository into the SemantiCore project shell without violating the edge-canonical kernel contract.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 ### 0.1 Publish the SemantiCore v1.0 Spec
 
@@ -70,10 +70,10 @@ Persist the decisions that future agents need before they touch code.
 - [x] Decisions preserve the core/adapters separation.
 
 **Phase 0 Exit Criteria:**
-- [ ] CI passes on `main`.
-- [ ] GitHub Pages workflow publishes the static app shell.
-- [ ] A future agent can read `README.md`, `project/SPEC.md`, and this roadmap and know what to build next.
-- [ ] Human reviewer completes [PHASE0_EXIT_REVIEW.md](./PHASE0_EXIT_REVIEW.md) and approves Phase 1 start.
+- [x] CI passes on `main`.
+- [x] GitHub Pages workflow publishes the static app shell.
+- [x] A future agent can read `README.md`, `project/SPEC.md`, and this roadmap and know what to build next.
+- [x] Human reviewer completes [PHASE0_EXIT_REVIEW.md](./PHASE0_EXIT_REVIEW.md) and approves Phase 1 start.
 
 ---
 
@@ -81,7 +81,7 @@ Persist the decisions that future agents need before they touch code.
 
 **Goal:** Replace the template identity transform with SemantiCore's pure JSON-LD enrichment kernel surface.
 
-**Status:** Not Started
+**Status:** In Progress
 
 ### 1.1 Define Minimal Kernel Input/Output Fixtures
 

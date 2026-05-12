@@ -19,6 +19,8 @@ The plan is intentionally staged so SemantiCore can become useful early without 
 
 **Goal:** Finish transforming the template repository into the SemantiCore project shell and make it visible on GitHub Pages.
 
+**Status:** Complete
+
 **Primary Outputs**
 - SemantiCore-branded repository metadata.
 - Published v1.0 specification.
@@ -60,9 +62,9 @@ The plan is intentionally staged so SemantiCore can become useful early without 
 - Any dependency audit findings are recorded, not silently fixed in unrelated commits.
 
 **Exit Criteria**
-- GitHub Pages deployment completes successfully.
-- Phase 1 can begin without naming/spec ambiguity.
-- Human reviewer completes [PHASE0_EXIT_REVIEW.md](./PHASE0_EXIT_REVIEW.md) and records approval to begin Phase 1.
+- [x] GitHub Pages deployment completes successfully.
+- [x] Phase 1 can begin without naming/spec ambiguity.
+- [x] Human reviewer completes [PHASE0_EXIT_REVIEW.md](./PHASE0_EXIT_REVIEW.md) and records approval to begin Phase 1.
 
 **Non-Goals**
 - No TagTeam runtime integration.
@@ -73,6 +75,8 @@ The plan is intentionally staged so SemantiCore can become useful early without 
 ## Phase 1: Pure SemantiCore Kernel
 
 **Goal:** Replace the template identity transform with the pure SemantiCore record-enrichment kernel defined by the spec.
+
+**Status:** In Progress
 
 **Primary Outputs**
 - Pure `enrichRecord` computation.
