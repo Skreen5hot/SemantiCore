@@ -1,20 +1,17 @@
-# Your Implementation
+# SemantiCore Project Space
 
-This directory is **your implementation space**. It is separate from the template's architecture documentation in `docs/`.
+This directory is SemantiCore's durable project memory.
 
-- `docs/` defines the **architecture contract** — how the template works and what rules it enforces.
-- `project/` defines **what you are building** — your roadmap, technical spec, and decisions.
+- `SPEC.md` defines the published SemantiCore v1.0 technical contract.
+- `ROADMAP.md` defines the current phase plan and scope boundaries.
+- `DECISIONS.md` records architecture decisions that future sessions must preserve.
 
-## Files
+The template's `docs/` directory describes the generic JSON-LD deterministic service architecture. This `project/` directory describes the actual product being built: SemantiCore.
 
-| File | Purpose |
-|------|---------|
-| [ROADMAP.md](./ROADMAP.md) | Phased plan with tasks, acceptance criteria, and scope boundaries |
-| [SPEC.md](./SPEC.md) | Technical specification for your domain-specific transform |
-| [DECISIONS.md](./DECISIONS.md) | Architecture Decision Record — log decisions so they survive between sessions |
+Before changing implementation code, read:
 
-## Why This Exists
+1. [SPEC.md](./SPEC.md)
+2. [ROADMAP.md](./ROADMAP.md)
+3. [DECISIONS.md](./DECISIONS.md)
 
-AI agents have no memory between sessions. These documents anchor every session to your project's current state. Before writing code, an agent should read `ROADMAP.md` to know what phase you're in and `SPEC.md` to understand the domain.
-
-Keep these files updated. They are living documents, not artifacts.
+SemantiCore's core remains edge-canonical: browser or local Node.js, JSON-LD in, deterministic JSON-LD out, with infrastructure isolated behind adapters.

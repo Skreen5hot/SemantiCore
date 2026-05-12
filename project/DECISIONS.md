@@ -9,7 +9,7 @@
 
 ## ADR-001: Use JSON-LD Deterministic Service Template
 
-**Date:** [TODAY]
+**Date:** 2026-05-12
 
 **Decision:** Adopt the JSON-LD Deterministic Service Template as the base architecture.
 
@@ -20,6 +20,38 @@
 - Kernel MUST NOT perform I/O, reference time, randomness, or environment state
 - Infrastructure (HTTP, persistence, scheduling) lives in `src/adapters/`
 - Spec tests (determinism, no-network, snapshot, purity) MUST pass before any merge
+
+---
+
+## ADR-002: Name the Project SemantiCore
+
+**Date:** 2026-05-12
+
+**Decision:** The published project name is SemantiCore; earlier `TagTeam Data Enricher` drafts are superseded.
+
+**Context:** The workbench uses TagTeam.js, but it is not the TagTeam.js repository. TagTeam is the local semantic graph engine. SemantiCore is the app/workbench, ingestion model, state/session model, and deterministic JSON-LD enrichment contract around that engine.
+
+**Consequences:**
+- Project-facing docs, metadata, and UI use SemantiCore naming.
+- `project/SPEC.md` is the authoritative SemantiCore v1.0 specification.
+- TagTeam integration remains explicit and version-pinned.
+- Future work must not place SemantiCore project docs in the TagTeam.js repo.
+
+---
+
+## ADR-003: Publish the Initial App on GitHub Pages
+
+**Date:** 2026-05-12
+
+**Decision:** SemantiCore's browser workbench will be published from the `app/` directory through GitHub Actions to GitHub Pages.
+
+**Context:** The project needs an edge-canonical browser surface early, but the kernel and adapters are still under construction. GitHub Pages provides a simple static publication target without introducing a required server into the architecture.
+
+**Consequences:**
+- GitHub Pages is an adapter/publication surface, not core computation.
+- The `app/` directory must not assume remote services or required network calls.
+- The GitHub Pages workflow deploys static files only.
+- Kernel CI remains separate from Pages publication.
 
 ---
 

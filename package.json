@@ -1,7 +1,7 @@
 {
-  "name": "json-ld-deterministic-service-template",
+  "name": "semanticore",
   "version": "0.1.0",
-  "description": "A minimal template for building deterministic JSON-LD transformation services",
+  "description": "Edge-canonical semantic enrichment workbench for structured data using TagTeam.js and JSON-LD",
   "type": "module",
   "main": "dist/kernel/index.js",
   "types": "dist/kernel/index.d.ts",
@@ -14,19 +14,20 @@
     "clean": "rimraf dist dist-tests"
   },
   "keywords": [
+    "semanticore",
+    "tagteam",
+    "semantic-enrichment",
     "json-ld",
     "deterministic",
     "edge-computing",
-    "architecture",
-    "offline-first",
-    "template"
+    "offline-first"
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Skreen5hot/SemantiCore.git"
   },
-  "homepage": "",
-  "author": "",
+  "homepage": "https://skreen5hot.github.io/SemantiCore/",
+  "author": "Aaron Damiano",
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.7.0",
