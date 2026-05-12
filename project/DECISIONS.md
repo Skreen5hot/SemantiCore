@@ -103,6 +103,40 @@
 
 ---
 
+## ADR-007: Approve Phase 1 and Begin Phase 2
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 1 is approved. Begin Phase 2: local ingestion and export adapters.
+
+**Context:** Human review approved the pure SemantiCore kernel checkpoint at commit `5d38325`. The kernel now has typed JSON-LD structures, local context resolution, semantic property paths, injected TagTeam runtime behavior, named graph output, conformance tests, and strengthened purity checks.
+
+**Consequences:**
+- Phase 1 is marked complete.
+- Phase 2 is marked in progress.
+- Adapter work should live outside `src/kernel/`.
+- CSV, plain JSON, JSON-LD passthrough, and export utilities may now be implemented.
+- The Phase 2 exit review must be completed before Phase 3 begins.
+
+---
+
+## ADR-008: Implement Phase 2 as Local Text/Object Adapters
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 2 adapters convert local text or in-memory objects into SemantiCore JSON-LD without adding required runtime infrastructure.
+
+**Context:** The SemantiCore spec treats CSV and plain JSON as adapter formats, not canonical representations. The first adapter implementation should be enough for local browser and Node orchestration while preserving the pure kernel boundary.
+
+**Consequences:**
+- CSV and plain JSON ingestion require mapping manifests.
+- Plain JSON nested array selection uses RFC 6901 JSON Pointer.
+- JSON-LD passthrough validates stable non-blank record IDs.
+- Exports are deterministic derived views over canonical JSON-LD state.
+- Browser UI wiring remains Phase 3; persistence remains Phase 4.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

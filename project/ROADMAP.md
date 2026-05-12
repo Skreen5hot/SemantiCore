@@ -81,7 +81,7 @@ Persist the decisions that future agents need before they touch code.
 
 **Goal:** Replace the template identity transform with SemantiCore's pure JSON-LD enrichment kernel surface.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 ### 1.1 Define Minimal Kernel Input/Output Fixtures
 
@@ -133,14 +133,16 @@ Extend the template tests with SemantiCore-specific conformance cases.
 
 **Goal:** Add local-first adapters around the pure kernel.
 
-**Status:** Not Started
+**Status:** Ready for Human Review
 
 Planned adapter surfaces:
-- CSV ingestion with mapping manifest.
-- Plain JSON ingestion with JSON Pointer selection.
-- Browser file import/export.
-- IndexedDB session, ontology, dataset, run, and named graph storage.
-- Static browser UI backed by local adapters.
+- [x] CSV ingestion with mapping manifest.
+- [x] Plain JSON ingestion with JSON Pointer selection.
+- [x] JSON-LD passthrough validation.
+- [x] JSON-LD, graph bundle, and CSV summary exports.
+- [ ] Browser file import/export.
+- [ ] IndexedDB session, ontology, dataset, run, and named graph storage.
+- [ ] Static browser UI backed by local adapters.
 
 **NOT in scope:**
 - Required servers.

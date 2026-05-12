@@ -76,7 +76,7 @@ The plan is intentionally staged so SemantiCore can become useful early without 
 
 **Goal:** Replace the template identity transform with the pure SemantiCore record-enrichment kernel defined by the spec.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 **Primary Outputs**
 - Pure `enrichRecord` computation.
@@ -194,7 +194,7 @@ Add SemantiCore-specific tests.
 - [x] `npm test` passes.
 - [x] `npm run test:purity` passes.
 - [x] Kernel implements `enrichRecord` without adapters.
-- [ ] Human reviewer completes [PHASE1_EXIT_REVIEW.md](./PHASE1_EXIT_REVIEW.md) and records approval to begin Phase 2.
+- [x] Human reviewer completes [PHASE1_EXIT_REVIEW.md](./PHASE1_EXIT_REVIEW.md) and records approval to begin Phase 2.
 
 **Non-Goals**
 - No CSV parser.
@@ -216,65 +216,68 @@ Add SemantiCore-specific tests.
 **Dependencies**
 - Phase 1 kernel stable.
 
+**Status:** Ready for Human Review
+
 ### 2.1 CSV Adapter
 
 Implement adapter under `src/adapters/integration/`.
 
 **Acceptance Criteria**
-- Accepts CSV text and mapping manifest.
-- Supports `sc:hasHeaderRow`.
-- Preserves row order.
-- Emits deterministic record IDs.
-- Preserves cell values as strings unless mapping declares datatype conversion.
-- Emits canonical `sc:Dataset`.
-- Emits or preserves `sc:MappingManifest`.
-- Does not enter `src/kernel/`.
+- [x] Accepts CSV text and mapping manifest.
+- [x] Supports `sc:hasHeaderRow`.
+- [x] Preserves row order.
+- [x] Emits deterministic record IDs.
+- [x] Preserves cell values as strings unless mapping declares datatype conversion.
+- [x] Emits canonical `sc:Dataset`.
+- [x] Emits or preserves `sc:MappingManifest`.
+- [x] Does not enter `src/kernel/`.
 
 ### 2.2 JSON Adapter
 
 Implement adapter for plain JSON.
 
 **Acceptance Criteria**
-- Accepts array of objects.
-- Accepts object containing array via RFC 6901 JSON Pointer.
-- Accepts single object as one record.
-- Emits `sc:UnsupportedInputShape` for unsupported shapes.
-- Uses mapping manifest when keys need semantic property mapping.
+- [x] Accepts array of objects.
+- [x] Accepts object containing array via RFC 6901 JSON Pointer.
+- [x] Accepts single object as one record.
+- [x] Emits `sc:UnsupportedInputShape` for unsupported shapes.
+- [x] Uses mapping manifest when keys need semantic property mapping.
 
 ### 2.3 JSON-LD Adapter
 
 Implement loader/validator for already-canonical JSON-LD.
 
 **Acceptance Criteria**
-- Accepts `sc:Dataset` JSON-LD.
-- Verifies records have stable non-blank `@id`.
-- Verifies `@context` or local context manifest sufficiency.
-- Does not rewrite semantically valid input unnecessarily.
+- [x] Accepts `sc:Dataset` JSON-LD.
+- [x] Verifies records have stable non-blank `@id`.
+- [x] Verifies `@context` or local context manifest sufficiency.
+- [x] Does not rewrite semantically valid input unnecessarily.
 
 ### 2.4 Export Adapters
 
 Implement derived export utilities.
 
 **Acceptance Criteria**
-- Exports canonical enriched JSON-LD.
-- Exports named graph bundle.
-- Exports CSV summary with required columns from spec section 20.
-- Does not embed full graphs in CSV cells.
-- Derived outputs are reproducible from canonical output.
+- [x] Exports canonical enriched JSON-LD.
+- [x] Exports named graph bundle.
+- [x] Exports CSV summary with required columns from spec section 20.
+- [x] Does not embed full graphs in CSV cells.
+- [x] Derived outputs are reproducible from canonical output.
 
 ### 2.5 Adapter Tests
 
 Add adapter test coverage.
 
 **Acceptance Criteria**
-- Same CSV plus same mapping manifest produces byte-stable dataset JSON-LD after canonicalization.
-- Missing mapping produces `sc:MappingManifestMissing`.
-- Ambiguous mapping produces `sc:MappingManifestAmbiguous`.
-- JSON Pointer selection is deterministic.
+- [x] Same CSV plus same mapping manifest produces byte-stable dataset JSON-LD after canonicalization.
+- [x] Missing mapping produces `sc:MappingManifestMissing`.
+- [x] Ambiguous mapping produces `sc:MappingManifestAmbiguous`.
+- [x] JSON Pointer selection is deterministic.
 
 **Exit Criteria**
-- Local files can be converted to kernel input and exported without browser UI.
-- Tests pass.
+- [x] Local files can be converted to kernel input and exported without browser UI.
+- [x] Tests pass.
+- [ ] Human reviewer completes [PHASE2_EXIT_REVIEW.md](./PHASE2_EXIT_REVIEW.md) and records approval to begin Phase 3.
 
 **Non-Goals**
 - No IndexedDB.
