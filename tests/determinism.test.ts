@@ -1,28 +1,20 @@
-/**
- * Determinism Test
- *
- * Verifies that the kernel transform produces identical output
- * when invoked multiple times with the same input.
- *
- * This is Spec Test #1 from ARCHITECTURE.md.
- */
-
 import { deepStrictEqual, strictEqual } from "node:assert";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { transform } from "../src/kernel/transform.js";
 import { stableStringify } from "../src/kernel/canonicalize.js";
-import type { JsonLdDocument } from "../src/kernel/transform.js";
 
-const input: JsonLdDocument = {
-  "@context": "https://schema.org",
-  "@type": "Thing",
-  "name": "Determinism Test",
-  "description": "Input for verifying deterministic behavior",
-};
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = resolve(__dirname, "..", "..");
+const inputPath = resolve(projectRoot, "examples", "input.jsonld");
 
 let passed = 0;
 let failed = 0;
 
-// Test 1: Structural equality across invocations
+const input = JSON.parse(await readFile(inputPath, "utf-8"));
+
 try {
   const output1 = transform(input);
   const output2 = transform(input);
@@ -35,13 +27,10 @@ try {
   failed++;
 }
 
-// Test 2: Canonicalized string equality (catches key ordering differences)
 try {
   const output1 = transform(input);
   const output2 = transform(input);
-  const str1 = stableStringify(output1);
-  const str2 = stableStringify(output2);
-  strictEqual(str1, str2);
+  strictEqual(stableStringify(output1), stableStringify(output2));
   console.log("  \u2713 PASS: canonicalized output strings are identical");
   passed++;
 } catch (error) {
@@ -50,14 +39,8 @@ try {
   failed++;
 }
 
-// Test 3: Input immutability
 try {
-  const freshInput: JsonLdDocument = {
-    "@context": "https://schema.org",
-    "@type": "Thing",
-    "name": "Determinism Test",
-    "description": "Input for verifying deterministic behavior",
-  };
+  const freshInput = JSON.parse(await readFile(inputPath, "utf-8"));
   transform(input);
   deepStrictEqual(input, freshInput);
   console.log("  \u2713 PASS: transform does not mutate input");
@@ -68,7 +51,6 @@ try {
   failed++;
 }
 
-// Summary
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);

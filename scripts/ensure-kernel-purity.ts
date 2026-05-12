@@ -27,6 +27,17 @@ const FORBIDDEN_PATTERNS = [
   /from\s+["'].*\/adapters\//,          // explicit adapter imports
   /require\s*\(\s*["'](?!node:)/,       // CommonJS require (except node: builtins)
   /import\s+.*from\s+["'](?!\.\/|node:)/, // absolute imports (except relative and node: builtins)
+  /Date\s*\./,                          // ambient time access
+  /new\s+Date\s*\(/,                    // ambient time access
+  /Math\.random\s*\(/,                  // randomness
+  /\bfetch\s*\(/,                       // network access
+  /\bXMLHttpRequest\b/,                 // network access
+  /\bindexedDB\b/,                      // browser persistence adapter leak
+  /\blocalStorage\b/,                   // browser persistence adapter leak
+  /\bsessionStorage\b/,                 // browser persistence adapter leak
+  /\bprocess\.env\b/,                   // environment-coupled behavior
+  /node:fs/,                            // filesystem access
+  /node:fs\/promises/,                  // filesystem access
 ];
 
 let violations = 0;

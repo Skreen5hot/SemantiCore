@@ -1,0 +1,268 @@
+import { collectNodeContexts, createTermResolver } from "./context.js";
+import { resolveSourceTexts } from "./path.js";
+import type {
+  EnrichRecordResult,
+  EnrichmentConfiguration,
+  JsonLdNode,
+  NamedGraph,
+  OntologySet,
+  SourceRecord,
+  TagTeamEnrichment,
+  TagTeamRuntime,
+  WarningResource,
+  ContextManifest,
+} from "./types.js";
+import { CORE_CONTEXT, iri, Status, WarningCode } from "./vocabulary.js";
+import { evaluateTagTeamVersion } from "./version.js";
+import { makeWarning, stableFragment } from "./warnings.js";
+
+export function enrichRecord(
+  record: SourceRecord,
+  configuration: EnrichmentConfiguration,
+  contextManifest: ContextManifest,
+  ontologySet: OntologySet,
+  tagTeamRuntime: TagTeamRuntime,
+): EnrichRecordResult {
+  const recordId = record["@id"];
+  const warnings: WarningResource[] = [];
+  const enrichedRecord = cloneRecord(record);
+  const propertyPath = configuration["sc:sourcePropertyPath"];
+  const graphResults: NamedGraph[] = [];
+  const enrichments: TagTeamEnrichment[] = [];
+
+  warnings.push(...ontologyAlignmentWarnings(ontologySet, recordId));
+
+  const versionDecision = evaluateTagTeamVersion(configuration, tagTeamRuntime.version, recordId);
+  warnings.push(...versionDecision.warnings);
+  if (!versionDecision.canRun) {
+    enrichments.push(
+      makeEnrichment({
+        recordId,
+        index: 0,
+        sourceText: undefined,
+        propertyPath,
+        tagTeamVersion: tagTeamRuntime.version,
+        status: Status.Failed,
+      }),
+    );
+    attachEnrichments(enrichedRecord, enrichments);
+    return { record: enrichedRecord, graph: null, warnings: sortWarnings(warnings) };
+  }
+
+  const resolver = createTermResolver(contextManifest, [
+    ...collectNodeContexts(record),
+    ...collectNodeContexts(configuration),
+  ]);
+  const textResolution = resolveSourceTexts(record, propertyPath, resolver);
+  warnings.push(...textResolution.warnings);
+
+  if (textResolution.candidates.length === 0) {
+    enrichments.push(
+      makeEnrichment({
+        recordId,
+        index: 0,
+        sourceText: undefined,
+        propertyPath,
+        tagTeamVersion: tagTeamRuntime.version,
+        status: Status.Skipped,
+      }),
+    );
+    attachEnrichments(enrichedRecord, enrichments);
+    return { record: enrichedRecord, graph: null, warnings: sortWarnings(warnings) };
+  }
+
+  const options = configuration["sc:tagTeamOptions"] ?? {
+    "@type": "sc:TagTeamOptions",
+    "sc:ontologyThreshold": 0,
+    "sc:verbose": false,
+  };
+
+  for (let index = 0; index < textResolution.candidates.length; index++) {
+    const candidate = textResolution.candidates[index];
+    try {
+      const tagTeamOutput = tagTeamRuntime.buildGraph(candidate.text, options, ontologySet);
+      const graph = makeNamedGraph(recordId, index, tagTeamOutput);
+      graphResults.push(graph);
+      enrichments.push(
+        makeEnrichment({
+          recordId,
+          index,
+          sourceText: candidate.text,
+          propertyPath,
+          tagTeamVersion: tagTeamRuntime.version,
+          status: Status.Succeeded,
+          graphId: graph["@id"],
+          summary: summarizeGraph(graph),
+        }),
+      );
+    } catch (error) {
+      warnings.push(
+        makeWarning({
+          code: WarningCode.TagTeamRuntimeError,
+          message: error instanceof Error ? error.message : String(error),
+          recordId,
+        }),
+      );
+      enrichments.push(
+        makeEnrichment({
+          recordId,
+          index,
+          sourceText: candidate.text,
+          propertyPath,
+          tagTeamVersion: tagTeamRuntime.version,
+          status: Status.Failed,
+        }),
+      );
+    }
+  }
+
+  attachEnrichments(enrichedRecord, enrichments);
+
+  return {
+    record: enrichedRecord,
+    graph: graphResults.length === 0 ? null : graphResults.length === 1 ? graphResults[0] : graphResults,
+    warnings: sortWarnings(warnings),
+  };
+}
+
+interface EnrichmentInput {
+  recordId: string;
+  index: number;
+  sourceText: string | undefined;
+  propertyPath: EnrichmentConfiguration["sc:sourcePropertyPath"];
+  tagTeamVersion: string;
+  status: string;
+  graphId?: string;
+  summary?: TagTeamEnrichment["sc:summary"];
+}
+
+function makeEnrichment(input: EnrichmentInput): TagTeamEnrichment {
+  const enrichment: TagTeamEnrichment = {
+    "@context": CORE_CONTEXT,
+    "@id": `urn:semanticore:enrichment:${stableFragment(input.recordId)}:${input.index}`,
+    "@type": "sc:TagTeamEnrichment",
+    "sc:status": iri(input.status),
+    "sc:sourcePropertyPath": input.propertyPath,
+    "sc:tagTeamVersion": input.tagTeamVersion,
+  };
+  if (input.sourceText !== undefined) {
+    enrichment["sc:sourceText"] = input.sourceText;
+  }
+  if (input.graphId) {
+    enrichment["sc:namedGraph"] = iri(input.graphId);
+  }
+  if (input.summary) {
+    enrichment["sc:summary"] = input.summary;
+  }
+  return enrichment;
+}
+
+function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph {
+  return {
+    "@context": CORE_CONTEXT,
+    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+    "@type": "sc:TagTeamGraph",
+    "sc:graphForRecord": iri(recordId),
+    "sc:graphIndex": index,
+    "@graph": extractGraphNodes(tagTeamOutput),
+  };
+}
+
+function extractGraphNodes(tagTeamOutput: JsonLdNode | JsonLdNode[]): JsonLdNode[] {
+  if (Array.isArray(tagTeamOutput)) {
+    return tagTeamOutput.map((node) => cloneNode(node));
+  }
+  if (Array.isArray(tagTeamOutput["@graph"])) {
+    return tagTeamOutput["@graph"].filter(isJsonLdNode).map((node) => cloneNode(node));
+  }
+  return [cloneNode(tagTeamOutput)];
+}
+
+function summarizeGraph(graph: NamedGraph): TagTeamEnrichment["sc:summary"] {
+  let entityCount = 0;
+  let actCount = 0;
+  let roleCount = 0;
+  let deonticDetected = false;
+
+  for (const node of graph["@graph"]) {
+    const types = collectTypes(node);
+    if (types.some((type) => type.includes("Entity") || type.endsWith(":Entity"))) {
+      entityCount++;
+    }
+    if (types.some((type) => type.includes("Act") || type.endsWith(":Act"))) {
+      actCount++;
+    }
+    if (types.some((type) => type.includes("Role") || type.endsWith(":Role"))) {
+      roleCount++;
+    }
+    if (types.some((type) => type.includes("Deontic")) || node["tagteam:deontic"] === true) {
+      deonticDetected = true;
+    }
+  }
+
+  return {
+    "@type": "sc:TagTeamSummary",
+    "sc:entityCount": entityCount,
+    "sc:actCount": actCount,
+    "sc:roleCount": roleCount,
+    "sc:deonticDetected": deonticDetected,
+  };
+}
+
+function collectTypes(node: JsonLdNode): string[] {
+  const raw = node["@type"];
+  if (typeof raw === "string") {
+    return [raw];
+  }
+  if (Array.isArray(raw)) {
+    return raw.filter((value): value is string => typeof value === "string");
+  }
+  return [];
+}
+
+function attachEnrichments(record: SourceRecord, enrichments: TagTeamEnrichment[]): void {
+  const types = new Set<string>();
+  const existingType = record["@type"];
+  if (typeof existingType === "string") {
+    types.add(existingType);
+  } else if (Array.isArray(existingType)) {
+    for (const value of existingType) {
+      if (typeof value === "string") {
+        types.add(value);
+      }
+    }
+  }
+  types.add("sc:EnrichedRecord");
+  record["@type"] = [...types].sort();
+  record["sc:semanticEnrichment"] = enrichments.length === 1 ? enrichments[0] : enrichments;
+}
+
+function ontologyAlignmentWarnings(ontologySet: OntologySet, recordId: string): WarningResource[] {
+  const ontologies = ontologySet["sc:ontologies"] ?? ontologySet.ontologies ?? [];
+  return ontologies
+    .filter((ontology) => ontology["sc:ontologyAlignment"]?.["@id"] !== "sc:CCO2BFO2020Aligned")
+    .map((ontology) =>
+      makeWarning({
+        code: WarningCode.NonCCOAlignedOntology,
+        message: `Ontology ${ontology["@id"]} is not declared as CCO 2.0 / BFO 2020 aligned.`,
+        recordId,
+        extra: { "sc:ontology": iri(ontology["@id"]) },
+      }),
+    );
+}
+
+function sortWarnings(warnings: WarningResource[]): WarningResource[] {
+  return [...warnings].sort((a, b) => a["@id"].localeCompare(b["@id"]));
+}
+
+function cloneRecord(record: SourceRecord): SourceRecord {
+  return structuredClone(record) as SourceRecord;
+}
+
+function cloneNode(node: JsonLdNode): JsonLdNode {
+  return structuredClone(node) as JsonLdNode;
+}
+
+function isJsonLdNode(value: unknown): value is JsonLdNode {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}

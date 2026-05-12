@@ -1,6 +1,6 @@
 # Phase 1 Exit Review: Pure SemantiCore Kernel
 
-Status: Planned  
+Status: Ready for Human Review  
 Date prepared: 2026-05-12  
 Phase started after Phase 0 approval
 
@@ -40,6 +40,33 @@ Review these files and areas:
 - `tests/`
 - `scripts/ensure-kernel-purity.ts`
 - `package.json`
+
+## Implementation Submitted for Review
+
+Phase 1 implementation is ready for human review in the commit that contains this document update.
+
+What changed:
+
+- Added the pure SemantiCore kernel modules under `src/kernel/`.
+- Added `enrichRecord(record, configuration, contextManifest, ontologySet, tagTeamRuntime)`.
+- Added typed JSON-LD structures for records, configuration, context manifests, ontology sets, TagTeam runtime, warnings, enrichments, and named graphs.
+- Added local context term resolution for semantic property paths.
+- Added deterministic TagTeam version policy handling.
+- Added source text resolution for multi-value, language-tagged, node, non-string, and empty values.
+- Added JSON-LD warning resources with IRI codes.
+- Added named graph output using top-level `@graph`.
+- Moved CLI file reading to `src/index.ts`; `src/kernel/` is computation-only.
+- Replaced template examples with SemantiCore fixtures.
+- Replaced template event-normalization example files.
+- Added SemantiCore-specific conformance tests.
+- Strengthened the kernel purity script to reject time, randomness, network, storage, environment, and filesystem access in compiled kernel files.
+
+Verification run before review:
+
+- `npm.cmd test`
+- `npm.cmd run test:purity`
+
+Both commands passed locally on 2026-05-12.
 
 ## Phase 1 Deliverables
 
@@ -292,4 +319,3 @@ Choose one:
 ### Notes
 
 Add review notes here:
-

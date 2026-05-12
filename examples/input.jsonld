@@ -1,6 +1,123 @@
 {
-  "@context": "https://schema.org",
-  "@type": "Thing",
-  "name": "Example Input",
-  "description": "A trivial JSON-LD document for demonstrating the kernel transform."
+  "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/",
+    "schema": "https://schema.org/",
+    "tagteam": "https://tagteam.fandaws.org/ontology/",
+    "records": {
+      "@id": "sc:records",
+      "@container": "@list"
+    },
+    "contexts": {
+      "@id": "sc:contexts",
+      "@container": "@list"
+    },
+    "ontologies": {
+      "@id": "sc:ontologies",
+      "@container": "@list"
+    }
+  },
+  "@id": "urn:semanticore:fixture:phase1",
+  "@type": "sc:TransformFixture",
+  "sc:record": {
+    "@id": "urn:semanticore:record:example:0",
+    "@type": "sc:SourceRecord",
+    "sc:source": {
+      "schema:description": "The committee shall review the proposal."
+    }
+  },
+  "sc:configuration": {
+    "@id": "urn:semanticore:config:phase1",
+    "@type": "sc:EnrichmentConfiguration",
+    "sc:semantiCoreVersion": "1.0.0",
+    "sc:requiredTagTeamVersion": "7.0.0",
+    "sc:tagTeamVersionPolicy": {
+      "@id": "sc:RejectOnMismatch"
+    },
+    "sc:sourcePropertyPath": {
+      "@type": "sc:PropertyPath",
+      "sc:path": [
+        {
+          "@id": "sc:source"
+        },
+        {
+          "@id": "schema:description"
+        }
+      ],
+      "sc:multiValuePolicy": {
+        "@id": "sc:EnrichEachValue"
+      },
+      "sc:languagePolicy": {
+        "@type": "sc:LanguagePolicy",
+        "sc:acceptedLanguage": "en",
+        "sc:onLanguageMissing": {
+          "@id": "sc:AcceptPlainLiteral"
+        }
+      }
+    },
+    "sc:tagTeamOptions": {
+      "@type": "sc:TagTeamOptions",
+      "sc:ontologyThreshold": 0.2,
+      "sc:verbose": false
+    },
+    "sc:onMissingText": {
+      "@id": "sc:WarnAndSkip"
+    },
+    "sc:onTagTeamError": {
+      "@id": "sc:CaptureAndContinue"
+    }
+  },
+  "sc:contextManifest": {
+    "@id": "urn:semanticore:context-manifest:phase1",
+    "@type": "sc:ContextManifest",
+    "contexts": [
+      {
+        "@id": "urn:semanticore:context:core-v1",
+        "@type": "sc:LocalContext",
+        "sc:contentHash": "sha256:phase1-fixture-context",
+        "sc:contextDocument": {
+          "@context": {
+            "sc": "https://semanticore.fandaws.org/ns/",
+            "schema": "https://schema.org/",
+            "tagteam": "https://tagteam.fandaws.org/ontology/",
+            "source": "sc:source",
+            "description": "schema:description"
+          }
+        }
+      }
+    ]
+  },
+  "sc:ontologySet": {
+    "@id": "urn:semanticore:ontology-set:phase1",
+    "@type": "sc:OntologySet",
+    "sc:ontologyCompositionPolicy": {
+      "@id": "sc:OrderedUnion"
+    },
+    "ontologies": [
+      {
+        "@id": "urn:semanticore:ontology:phase1",
+        "@type": "sc:LocalOntology",
+        "sc:contentHash": "sha256:phase1-fixture-ontology",
+        "sc:contentLocation": "project/ontologies/phase1.ttl",
+        "sc:ontologyAlignment": {
+          "@id": "sc:CCO2BFO2020Aligned"
+        }
+      }
+    ]
+  },
+  "sc:tagTeamFixtureGraph": [
+    {
+      "@id": "urn:tagteam:entity:committee",
+      "@type": "tagteam:Entity",
+      "schema:name": "committee"
+    },
+    {
+      "@id": "urn:tagteam:act:review",
+      "@type": [
+        "tagteam:Act",
+        "tagteam:DeonticSignal"
+      ],
+      "schema:name": "shall review",
+      "tagteam:deontic": true
+    }
+  ]
 }

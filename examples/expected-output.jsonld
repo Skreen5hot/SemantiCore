@@ -1,13 +1,160 @@
 {
-  "@context": "https://schema.org",
-  "@type": "Thing",
-  "description": "A trivial JSON-LD document for demonstrating the kernel transform.",
-  "name": "Example Input",
-  "provenance": {
-    "@type": "Provenance",
-    "kernelVersion": "0.1.0",
-    "rulesApplied": [
-      "identity"
-    ]
-  }
+  "@context": {
+    "dcterms": "http://purl.org/dc/terms/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "sc": "https://semanticore.fandaws.org/ns/",
+    "sc:code": {
+      "@type": "@id"
+    },
+    "sc:graphForRecord": {
+      "@type": "@id"
+    },
+    "sc:namedGraph": {
+      "@type": "@id"
+    },
+    "sc:path": {
+      "@container": "@list",
+      "@type": "@id"
+    },
+    "sc:record": {
+      "@type": "@id"
+    },
+    "sc:status": {
+      "@type": "@id"
+    },
+    "schema": "https://schema.org/",
+    "tagteam": "https://tagteam.fandaws.org/ontology/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:semanticore:transform-result:example",
+  "@type": "sc:TransformResult",
+  "sc:graph": {
+    "@context": {
+      "dcterms": "http://purl.org/dc/terms/",
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "sc": "https://semanticore.fandaws.org/ns/",
+      "sc:code": {
+        "@type": "@id"
+      },
+      "sc:graphForRecord": {
+        "@type": "@id"
+      },
+      "sc:namedGraph": {
+        "@type": "@id"
+      },
+      "sc:path": {
+        "@container": "@list",
+        "@type": "@id"
+      },
+      "sc:record": {
+        "@type": "@id"
+      },
+      "sc:status": {
+        "@type": "@id"
+      },
+      "schema": "https://schema.org/",
+      "tagteam": "https://tagteam.fandaws.org/ontology/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@graph": [
+      {
+        "@id": "urn:tagteam:entity:committee",
+        "@type": "tagteam:Entity",
+        "schema:name": "committee"
+      },
+      {
+        "@id": "urn:tagteam:act:review",
+        "@type": [
+          "tagteam:Act",
+          "tagteam:DeonticSignal"
+        ],
+        "schema:name": "shall review",
+        "tagteam:deontic": true
+      }
+    ],
+    "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0",
+    "@type": "sc:TagTeamGraph",
+    "sc:graphForRecord": {
+      "@id": "urn:semanticore:record:example:0"
+    },
+    "sc:graphIndex": 0
+  },
+  "sc:record": {
+    "@id": "urn:semanticore:record:example:0",
+    "@type": [
+      "sc:EnrichedRecord",
+      "sc:SourceRecord"
+    ],
+    "sc:semanticEnrichment": {
+      "@context": {
+        "dcterms": "http://purl.org/dc/terms/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "sc": "https://semanticore.fandaws.org/ns/",
+        "sc:code": {
+          "@type": "@id"
+        },
+        "sc:graphForRecord": {
+          "@type": "@id"
+        },
+        "sc:namedGraph": {
+          "@type": "@id"
+        },
+        "sc:path": {
+          "@container": "@list",
+          "@type": "@id"
+        },
+        "sc:record": {
+          "@type": "@id"
+        },
+        "sc:status": {
+          "@type": "@id"
+        },
+        "schema": "https://schema.org/",
+        "tagteam": "https://tagteam.fandaws.org/ontology/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#"
+      },
+      "@id": "urn:semanticore:enrichment:urn-semanticore-record-example-0:0",
+      "@type": "sc:TagTeamEnrichment",
+      "sc:namedGraph": {
+        "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0"
+      },
+      "sc:sourcePropertyPath": {
+        "@type": "sc:PropertyPath",
+        "sc:languagePolicy": {
+          "@type": "sc:LanguagePolicy",
+          "sc:acceptedLanguage": "en",
+          "sc:onLanguageMissing": {
+            "@id": "sc:AcceptPlainLiteral"
+          }
+        },
+        "sc:multiValuePolicy": {
+          "@id": "sc:EnrichEachValue"
+        },
+        "sc:path": [
+          {
+            "@id": "sc:source"
+          },
+          {
+            "@id": "schema:description"
+          }
+        ]
+      },
+      "sc:sourceText": "The committee shall review the proposal.",
+      "sc:status": {
+        "@id": "sc:EnrichmentSucceeded"
+      },
+      "sc:summary": {
+        "@type": "sc:TagTeamSummary",
+        "sc:actCount": 1,
+        "sc:deonticDetected": true,
+        "sc:entityCount": 1,
+        "sc:roleCount": 0
+      },
+      "sc:tagTeamVersion": "7.0.0"
+    },
+    "sc:source": {
+      "schema:description": "The committee shall review the proposal."
+    }
+  },
+  "sc:warnings": []
 }

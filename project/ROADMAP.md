@@ -81,45 +81,45 @@ Persist the decisions that future agents need before they touch code.
 
 **Goal:** Replace the template identity transform with SemantiCore's pure JSON-LD enrichment kernel surface.
 
-**Status:** In Progress
+**Status:** Ready for Human Review
 
 ### 1.1 Define Minimal Kernel Input/Output Fixtures
 
-**Status:** Not Started | **Priority:** Critical
+**Status:** Complete | **Priority:** Critical
 
 Create representative JSON-LD fixtures for the smallest conforming SemantiCore enrichment run.
 
 **Acceptance Criteria:**
-- [ ] `examples/input.jsonld` contains a SemantiCore dataset/config/context/ontology fixture or a documented fixture envelope.
-- [ ] `examples/expected-output.jsonld` contains canonical enriched records and named graph placeholders.
-- [ ] Fixtures exercise semantic property path resolution.
-- [ ] Fixtures avoid network-dependent contexts.
+- [x] `examples/input.jsonld` contains a SemantiCore dataset/config/context/ontology fixture or a documented fixture envelope.
+- [x] `examples/expected-output.jsonld` contains canonical enriched records and named graph placeholders.
+- [x] Fixtures exercise semantic property path resolution.
+- [x] Fixtures avoid network-dependent contexts.
 
 ### 1.2 Implement Pure `enrichRecord` Semantics
 
-**Status:** Not Started | **Priority:** Critical
+**Status:** Complete | **Priority:** Critical
 
 Implement the pure record-oriented kernel from `project/SPEC.md`.
 
 **Acceptance Criteria:**
-- [ ] Core code performs no I/O, network, time, randomness, IndexedDB, or environment access.
-- [ ] Core validates TagTeam version policy through an injected runtime object.
-- [ ] Core resolves semantic property paths over local context information.
-- [ ] Core creates JSON-LD warning/error resources instead of throwing for recoverable failures.
-- [ ] `npm test` and `npm run test:purity` pass.
+- [x] Core code performs no I/O, network, time, randomness, IndexedDB, or environment access.
+- [x] Core validates TagTeam version policy through an injected runtime object.
+- [x] Core resolves semantic property paths over local context information.
+- [x] Core creates JSON-LD warning/error resources instead of throwing for recoverable failures.
+- [x] `npm test` and `npm run test:purity` pass.
 
 ### 1.3 Add SemantiCore Conformance Tests
 
-**Status:** Not Started | **Priority:** High
+**Status:** Complete | **Priority:** High
 
 Extend the template tests with SemantiCore-specific conformance cases.
 
 **Acceptance Criteria:**
-- [ ] Deterministic rerun test covers SemantiCore output.
-- [ ] Offline context test covers local context manifests.
-- [ ] TagTeam version mismatch test exists.
-- [ ] Named graph output test exists.
-- [ ] Semantic path failure test emits `sc:ContextResolutionError`.
+- [x] Deterministic rerun test covers SemantiCore output.
+- [x] Offline context test covers local context manifests.
+- [x] TagTeam version mismatch test exists.
+- [x] Named graph output test exists.
+- [x] Semantic path failure test emits `sc:ContextResolutionError`.
 
 **NOT in scope for Phase 1:**
 - CSV parser implementation.

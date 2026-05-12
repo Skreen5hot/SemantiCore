@@ -1,126 +1,72 @@
-/**
- * Kernel Transform Function
- *
- * Pure function: JSON-LD → JSON-LD
- * MUST be deterministic. MUST NOT perform I/O.
- * MUST NOT reference Date, Math.random, fetch, or any non-deterministic API.
- *
- * This is the identity transform — the template's starting point.
- * Consumers replace the transformation logic with their domain-specific rules.
- */
+import { enrichRecord } from "./enrich.js";
+import type { JsonLdNode, TagTeamRuntime, TransformInput } from "./types.js";
+import { CORE_CONTEXT } from "./vocabulary.js";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** A valid JSON-LD document. MUST include @context. */
-export interface JsonLdDocument {
-  "@context": string | Record<string, unknown> | Array<string | Record<string, unknown>>;
-  [key: string]: unknown;
+export interface TransformResult extends JsonLdNode {
+  "@type": "sc:TransformResult";
+  "sc:record": JsonLdNode;
+  "sc:graph": JsonLdNode | JsonLdNode[] | null;
+  "sc:warnings": JsonLdNode[];
 }
 
-/** Deterministic provenance metadata. No timestamps. */
-export interface Provenance {
-  "@type": "Provenance";
-  kernelVersion: string;
-  rulesApplied: string[];
+export interface TransformError extends JsonLdNode {
+  "@type": "sc:Error";
+  "sc:code": { "@id": string };
+  "sc:message": string;
+  "sc:recoverable": false;
 }
 
-/** Uncertainty annotation for unresolved values. */
-export interface UncertaintyAnnotation {
-  "@type": "Uncertainty";
-  status: "deferred" | "assumed" | "unknown";
-  reason: string;
-  references: string[];
+export function transform(input: unknown): TransformResult | TransformError {
+  if (!isTransformInput(input)) {
+    return makeError("sc:UnsupportedInputShape", "Input must be a SemantiCore transform fixture.");
+  }
+
+  const runtime: TagTeamRuntime = {
+    version: input["sc:configuration"]["sc:requiredTagTeamVersion"],
+    buildGraph(): JsonLdNode | JsonLdNode[] {
+      return input["sc:tagTeamFixtureGraph"] ?? [];
+    },
+  };
+
+  const result = enrichRecord(
+    input["sc:record"],
+    input["sc:configuration"],
+    input["sc:contextManifest"],
+    input["sc:ontologySet"],
+    runtime,
+  );
+
+  return {
+    "@context": CORE_CONTEXT,
+    "@id": "urn:semanticore:transform-result:example",
+    "@type": "sc:TransformResult",
+    "sc:record": result.record,
+    "sc:graph": result.graph,
+    "sc:warnings": result.warnings,
+  };
 }
 
-/** Successful transform output. */
-export interface TransformOutput extends JsonLdDocument {
-  provenance: Provenance;
+function makeError(code: string, message: string): TransformError {
+  return {
+    "@context": CORE_CONTEXT,
+    "@id": `urn:semanticore:error:${code.replace(/[^A-Za-z0-9]+/g, "-")}`,
+    "@type": "sc:Error",
+    "sc:code": { "@id": code },
+    "sc:message": message,
+    "sc:recoverable": false,
+  };
 }
 
-/** Error output returned for invalid input. */
-export interface TransformError {
-  "@context": "https://schema.org";
-  "@type": "Error";
-  errorCode: string;
-  error: string;
-  provenance: Provenance;
-}
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/** Static kernel version. Update when making breaking changes. */
-const KERNEL_VERSION = "0.1.0";
-
-// ---------------------------------------------------------------------------
-// Transform
-// ---------------------------------------------------------------------------
-
-/**
- * Pure deterministic transformation.
- *
- * Given a JSON-LD input document, produces a JSON-LD output document.
- * This is the identity transform — the template's starting point.
- * Consumers replace the body with their domain-specific transformation logic.
- *
- * The function never throws for any input. Invalid input produces a
- * well-formed JSON-LD error object with a stable error code.
- *
- * @param input - A value expected to be a valid JSON-LD document
- * @returns A new JSON-LD document (never mutates input)
- */
-export function transform(input: unknown): TransformOutput | TransformError {
-  // -----------------------------------------------------------------------
-  // Input validation — return error objects, never throw
-  // -----------------------------------------------------------------------
-
+function isTransformInput(input: unknown): input is TransformInput {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
-    return makeError("INVALID_INPUT", "Input must be a non-null, non-array object");
+    return false;
   }
-
-  const doc = input as Record<string, unknown>;
-
-  if (!("@context" in doc)) {
-    return makeError("INVALID_CONTEXT", "Input must include an @context property");
-  }
-
-  // -----------------------------------------------------------------------
-  // Identity transform
-  //
-  // Deep-clone the input to guarantee immutability, then attach provenance.
-  // Replace this section with domain-specific transformation rules.
-  // Each rule should be named in rulesApplied for traceability.
-  // -----------------------------------------------------------------------
-
-  const output = structuredClone(doc) as JsonLdDocument;
-
-  return {
-    ...output,
-    provenance: {
-      "@type": "Provenance",
-      kernelVersion: KERNEL_VERSION,
-      rulesApplied: ["identity"],
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-function makeError(errorCode: string, message: string): TransformError {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Error",
-    errorCode,
-    error: message,
-    provenance: {
-      "@type": "Provenance",
-      kernelVersion: KERNEL_VERSION,
-      rulesApplied: [],
-    },
-  };
+  const doc = input as Partial<TransformInput>;
+  return Boolean(
+    doc["@context"] &&
+      doc["sc:record"] &&
+      doc["sc:configuration"] &&
+      doc["sc:contextManifest"] &&
+      doc["sc:ontologySet"],
+  );
 }

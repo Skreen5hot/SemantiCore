@@ -87,6 +87,22 @@
 
 ---
 
+## ADR-006: Keep Phase 1 TagTeam Runtime Injected
+
+**Date:** 2026-05-12
+
+**Decision:** Phase 1 implements SemantiCore's kernel against an injected `TagTeamRuntime` interface instead of importing or loading the real TagTeam.js bundle.
+
+**Context:** The v1.0 spec requires TagTeam execution to be local and version-pinned, but the Phase 1 goal is to prove the pure computation boundary. Loading real TagTeam code belongs to the later runtime integration phase. An injected runtime lets tests prove version policy, runtime error capture, named graph attachment, and deterministic output without creating a hidden integration dependency.
+
+**Consequences:**
+- `src/kernel/enrich.ts` accepts a runtime object with `version` and `buildGraph`.
+- Tests use deterministic runtime fixtures.
+- Real TagTeam loading remains a Phase 5 adapter/integration task.
+- The kernel can run in browser or Node without required network or bundler-specific behavior.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

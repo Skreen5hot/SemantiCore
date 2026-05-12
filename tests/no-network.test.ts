@@ -1,20 +1,8 @@
-/**
- * No-Network Test
- *
- * Verifies that the kernel transform does not make any network calls.
- * Stubs globalThis.fetch and XMLHttpRequest (if present), failing if
- * either is invoked during kernel execution.
- *
- * This is Spec Test #2 from ARCHITECTURE.md.
- */
-
 import { transform } from "../src/kernel/transform.js";
-import type { JsonLdDocument } from "../src/kernel/transform.js";
 
 let passed = 0;
 let failed = 0;
 
-// --- Stub fetch ---
 let fetchCalled = false;
 let fetchUrl = "";
 const originalFetch = globalThis.fetch;
@@ -25,7 +13,6 @@ globalThis.fetch = (async (input: string | URL | Request, _init?: unknown) => {
   throw new Error(`Network call detected: ${fetchUrl}`);
 }) as typeof globalThis.fetch;
 
-// --- Stub XMLHttpRequest ---
 let xhrInstantiated = false;
 const originalXHR = (globalThis as Record<string, unknown>)["XMLHttpRequest"];
 
@@ -36,17 +23,55 @@ const originalXHR = (globalThis as Record<string, unknown>)["XMLHttpRequest"];
   }
 };
 
-// --- Run transform ---
-const input: JsonLdDocument = {
-  "@context": "https://schema.org",
-  "@type": "Thing",
-  "name": "No-Network Test",
+const input = {
+  "@context": {
+    sc: "https://semanticore.fandaws.org/ns/",
+    schema: "https://schema.org/",
+  },
+  "@type": "sc:TransformFixture",
+  "sc:record": {
+    "@id": "urn:semanticore:record:no-network:0",
+    "@type": "sc:SourceRecord",
+    "sc:source": {
+      "schema:description": "No network should be needed.",
+    },
+  },
+  "sc:configuration": {
+    "@id": "urn:semanticore:config:no-network",
+    "@type": "sc:EnrichmentConfiguration",
+    "sc:requiredTagTeamVersion": "7.0.0",
+    "sc:sourcePropertyPath": {
+      "@type": "sc:PropertyPath",
+      "sc:path": [{ "@id": "sc:source" }, { "@id": "schema:description" }],
+    },
+  },
+  "sc:contextManifest": {
+    "@id": "urn:semanticore:context-manifest:no-network",
+    "@type": "sc:ContextManifest",
+    contexts: [
+      {
+        "@id": "urn:semanticore:context:no-network",
+        "@type": "sc:LocalContext",
+        "sc:contextDocument": {
+          "@context": {
+            sc: "https://semanticore.fandaws.org/ns/",
+            schema: "https://schema.org/",
+          },
+        },
+      },
+    ],
+  },
+  "sc:ontologySet": {
+    "@id": "urn:semanticore:ontology-set:no-network",
+    "@type": "sc:OntologySet",
+    ontologies: [],
+  },
+  "sc:tagTeamFixtureGraph": [],
 };
 
 try {
   transform(input);
 
-  // Check fetch
   if (fetchCalled) {
     console.error(`  \u2717 FAIL: kernel invoked fetch (URL: ${fetchUrl})`);
     failed++;
@@ -55,7 +80,6 @@ try {
     passed++;
   }
 
-  // Check XMLHttpRequest
   if (xhrInstantiated) {
     console.error("  \u2717 FAIL: kernel instantiated XMLHttpRequest");
     failed++;
@@ -68,12 +92,10 @@ try {
   console.error(" ", error instanceof Error ? error.message : String(error));
   failed++;
 } finally {
-  // Restore originals
   globalThis.fetch = originalFetch;
   (globalThis as Record<string, unknown>)["XMLHttpRequest"] = originalXHR;
 }
 
-// Summary
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);
