@@ -62,6 +62,7 @@ The plan is intentionally staged so SemantiCore can become useful early without 
 **Exit Criteria**
 - GitHub Pages deployment completes successfully.
 - Phase 1 can begin without naming/spec ambiguity.
+- Human reviewer completes [PHASE0_EXIT_REVIEW.md](./PHASE0_EXIT_REVIEW.md) and records approval to begin Phase 1.
 
 **Non-Goals**
 - No TagTeam runtime integration.

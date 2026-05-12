@@ -55,6 +55,22 @@
 
 ---
 
+## ADR-004: Require Human Exit Review Between Phases
+
+**Date:** 2026-05-12
+
+**Decision:** Each phase must have an explicit human review and approval package before the next phase begins.
+
+**Context:** SemantiCore's architecture is intentionally strict. Phase transitions should not rely on chat memory or agent confidence. A human reviewer needs a concrete checklist that explains what to inspect, what passes, what blocks, and what approval means.
+
+**Consequences:**
+- Phase exit review documents live in `project/`.
+- Phase 0 exit review is `project/PHASE0_EXIT_REVIEW.md`.
+- Future phases should add their own exit review documents before asking for approval.
+- No phase is considered complete until the human review decision is recorded.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 
