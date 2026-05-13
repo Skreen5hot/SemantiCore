@@ -25,6 +25,7 @@ export const TAGTEAM_GRAPH_CONTEXT = {
   "is_about": { "@id": "tagteam:is_about", "@type": "@id" },
   "is_concretized_by": { "@id": "tagteam:is_concretized_by", "@type": "@id" },
   "is_subject_of": { "@id": "tagteam:is_subject_of", "@type": "@id" },
+  "is_bearer_of": { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" },
   "has_input": { "@id": "tagteam:has_input", "@type": "@id" },
   "has_agent": { "@id": "tagteam:has_agent", "@type": "@id" },
   "has_output": { "@id": "tagteam:has_output", "@type": "@id" },
@@ -32,6 +33,7 @@ export const TAGTEAM_GRAPH_CONTEXT = {
   "is_prescribed_by": { "@id": "tagteam:is_prescribed_by", "@type": "@id" },
   "isSpecifiedBy": { "@id": "tagteam:isSpecifiedBy", "@type": "@id" },
   "inheres_in": { "@id": "tagteam:inheres_in", "@type": "@id" },
+  "realized_in": { "@id": "tagteam:realized_in", "@type": "@id" },
   "has_text_value": "tagteam:has_text_value",
   "ontologyMatch": { "@id": "tagteam:ontologyMatch", "@container": "@set" },
   "ontologyMatchIRI": { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" },
@@ -41,6 +43,7 @@ export const TAGTEAM_GRAPH_CONTEXT = {
   "ontologyMatchType": "tagteam:ontologyMatchType",
   "ontologyMatchForm": "tagteam:ontologyMatchForm",
   "ontologyMatchInflection": "tagteam:ontologyMatchInflection",
+  "ontologyMatchOWLType": { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" },
   "tagteam:classNominationStatus": { "@type": "@id" },
   "ActSpecification": "tagteam:ActSpecification",
   "Agent": "tagteam:Agent",
@@ -55,6 +58,8 @@ export const TAGTEAM_GRAPH_CONTEXT = {
   "Permission": "tagteam:Permission",
   "Person": "tagteam:Person",
   "PlanSpecification": "tagteam:PlanSpecification",
+  "Process": "tagteam:Process",
+  "Role": "tagteam:Role",
 } as const;
 
 export const KERNEL_VERSION = "1.0.0-phase1";

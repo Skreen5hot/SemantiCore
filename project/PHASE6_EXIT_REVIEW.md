@@ -29,6 +29,8 @@ What changed:
 - Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
 - Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
 - Added `sc:ontologyBridge` graph diagnostics so reviewers can see whether local ontology TTL was passed to TagTeam and how many `ontologyMatch` annotations returned.
+- Aligned ontology compilation with the TagTeam standalone demo by passing `propertyMap: { keywords: "rdfs:label", label: "rdfs:label" }` to `OntologyTextTagger.fromTTL`.
+- Extended graph context coverage for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
 
 Verification run before review:
 
@@ -36,6 +38,7 @@ Verification run before review:
 - `npm.cmd run test:purity`
 - `npm.cmd run build`
 - `node --check app/main.js`
+- Browser smoke test against local `app/` server confirming graph output includes `sc:ontologyCompilePropertyMap`.
 
 ## Purpose
 
@@ -111,6 +114,7 @@ Expected:
 - `rdfs:` and `owl:` are defined.
 - `is_about` and `is_concretized_by` are mapped as IRI-valued properties.
 - `ontologyMatch` and `ontologyMatchIRI` are mapped.
+- `ontologyMatchOWLType`, `is_bearer_of`, and `realized_in` are mapped when TagTeam returns role/ontology-match output.
 
 Block if:
 
@@ -124,6 +128,7 @@ Expected:
 - The report includes `sc:ontologyOptionStatus`.
 - The report includes `sc:ontologyOptionPassed`.
 - The report includes `sc:ontologyMatchCount`.
+- The report includes `sc:ontologyCompilePropertyMap` with `rdfs:label` mappings matching the TagTeam standalone demo.
 
 Block if:
 
@@ -201,9 +206,13 @@ Commit reviewed:
 - [ ] TagTeam graph context maps `is_about`.
 - [ ] TagTeam graph context maps `is_concretized_by`.
 - [ ] TagTeam graph context maps `ontologyMatch`.
+- [ ] TagTeam graph context maps `ontologyMatchOWLType`.
+- [ ] TagTeam graph context maps `is_bearer_of`.
+- [ ] TagTeam graph context maps `realized_in`.
 - [ ] Graph output includes `sc:OntologyBridgeReport`.
 - [ ] Graph output includes `sc:ontologyOptionStatus`.
 - [ ] Graph output includes `sc:ontologyMatchCount`.
+- [ ] Graph output includes `sc:ontologyCompilePropertyMap`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.

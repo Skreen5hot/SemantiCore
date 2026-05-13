@@ -1,19 +1,12 @@
 {
   "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/",
+    "tagteam": "https://tagteam.fandaws.org/ontology/",
+    "schema": "https://schema.org/",
     "dcterms": "http://purl.org/dc/terms/",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "sc": "https://semanticore.fandaws.org/ns/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
     "sc:code": {
-      "@type": "@id"
-    },
-    "sc:graphForRecord": {
-      "@type": "@id"
-    },
-    "sc:namedGraph": {
-      "@type": "@id"
-    },
-    "sc:path": {
-      "@container": "@list",
       "@type": "@id"
     },
     "sc:record": {
@@ -22,14 +15,200 @@
     "sc:status": {
       "@type": "@id"
     },
-    "schema": "https://schema.org/",
-    "tagteam": "https://tagteam.fandaws.org/ontology/",
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
+    "sc:namedGraph": {
+      "@type": "@id"
+    },
+    "sc:graphForRecord": {
+      "@type": "@id"
+    },
+    "sc:path": {
+      "@type": "@id",
+      "@container": "@list"
+    }
   },
   "@id": "urn:semanticore:transform-result:example",
   "@type": "sc:TransformResult",
+  "sc:record": {
+    "@id": "urn:semanticore:record:example:0",
+    "@type": [
+      "sc:EnrichedRecord",
+      "sc:SourceRecord"
+    ],
+    "sc:source": {
+      "schema:description": "The committee shall review the proposal."
+    },
+    "sc:semanticEnrichment": {
+      "@context": {
+        "sc": "https://semanticore.fandaws.org/ns/",
+        "tagteam": "https://tagteam.fandaws.org/ontology/",
+        "schema": "https://schema.org/",
+        "dcterms": "http://purl.org/dc/terms/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "sc:code": {
+          "@type": "@id"
+        },
+        "sc:record": {
+          "@type": "@id"
+        },
+        "sc:status": {
+          "@type": "@id"
+        },
+        "sc:namedGraph": {
+          "@type": "@id"
+        },
+        "sc:graphForRecord": {
+          "@type": "@id"
+        },
+        "sc:path": {
+          "@type": "@id",
+          "@container": "@list"
+        }
+      },
+      "@id": "urn:semanticore:enrichment:urn-semanticore-record-example-0:0",
+      "@type": "sc:TagTeamEnrichment",
+      "sc:status": {
+        "@id": "sc:EnrichmentSucceeded"
+      },
+      "sc:sourcePropertyPath": {
+        "@type": "sc:PropertyPath",
+        "sc:path": [
+          {
+            "@id": "sc:source"
+          },
+          {
+            "@id": "schema:description"
+          }
+        ],
+        "sc:multiValuePolicy": {
+          "@id": "sc:EnrichEachValue"
+        },
+        "sc:languagePolicy": {
+          "@type": "sc:LanguagePolicy",
+          "sc:acceptedLanguage": "en",
+          "sc:onLanguageMissing": {
+            "@id": "sc:AcceptPlainLiteral"
+          }
+        }
+      },
+      "sc:tagTeamVersion": "7.0.0",
+      "sc:sourceText": "The committee shall review the proposal.",
+      "sc:namedGraph": {
+        "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0"
+      },
+      "sc:summary": {
+        "@type": "sc:TagTeamSummary",
+        "sc:entityCount": 1,
+        "sc:actCount": 1,
+        "sc:roleCount": 0,
+        "sc:deonticDetected": true
+      }
+    }
+  },
   "sc:graph": {
     "@context": {
+      "sc": "https://semanticore.fandaws.org/ns/",
+      "tagteam": "https://tagteam.fandaws.org/ontology/",
+      "schema": "https://schema.org/",
+      "dcterms": "http://purl.org/dc/terms/",
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "sc:code": {
+        "@type": "@id"
+      },
+      "sc:record": {
+        "@type": "@id"
+      },
+      "sc:status": {
+        "@type": "@id"
+      },
+      "sc:namedGraph": {
+        "@type": "@id"
+      },
+      "sc:graphForRecord": {
+        "@type": "@id"
+      },
+      "sc:path": {
+        "@type": "@id",
+        "@container": "@list"
+      },
+      "inst": "urn:tagteam:instance:",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "owl": "http://www.w3.org/2002/07/owl#",
+      "is_about": {
+        "@id": "tagteam:is_about",
+        "@type": "@id"
+      },
+      "is_concretized_by": {
+        "@id": "tagteam:is_concretized_by",
+        "@type": "@id"
+      },
+      "is_subject_of": {
+        "@id": "tagteam:is_subject_of",
+        "@type": "@id"
+      },
+      "is_bearer_of": {
+        "@id": "tagteam:is_bearer_of",
+        "@type": "@id",
+        "@container": "@set"
+      },
+      "has_input": {
+        "@id": "tagteam:has_input",
+        "@type": "@id"
+      },
+      "has_agent": {
+        "@id": "tagteam:has_agent",
+        "@type": "@id"
+      },
+      "has_output": {
+        "@id": "tagteam:has_output",
+        "@type": "@id"
+      },
+      "prescribes": {
+        "@id": "tagteam:prescribes",
+        "@type": "@id"
+      },
+      "is_prescribed_by": {
+        "@id": "tagteam:is_prescribed_by",
+        "@type": "@id"
+      },
+      "isSpecifiedBy": {
+        "@id": "tagteam:isSpecifiedBy",
+        "@type": "@id"
+      },
+      "inheres_in": {
+        "@id": "tagteam:inheres_in",
+        "@type": "@id"
+      },
+      "realized_in": {
+        "@id": "tagteam:realized_in",
+        "@type": "@id"
+      },
+      "has_text_value": "tagteam:has_text_value",
+      "ontologyMatch": {
+        "@id": "tagteam:ontologyMatch",
+        "@container": "@set"
+      },
+      "ontologyMatchIRI": {
+        "@id": "tagteam:ontologyMatchIRI",
+        "@type": "@id"
+      },
+      "ontologyMatchConfidence": {
+        "@id": "tagteam:ontologyMatchConfidence",
+        "@type": "xsd:decimal"
+      },
+      "ontologyMatchEvidence": "tagteam:ontologyMatchEvidence",
+      "ontologyMatchLabel": "tagteam:ontologyMatchLabel",
+      "ontologyMatchType": "tagteam:ontologyMatchType",
+      "ontologyMatchForm": "tagteam:ontologyMatchForm",
+      "ontologyMatchInflection": "tagteam:ontologyMatchInflection",
+      "ontologyMatchOWLType": {
+        "@id": "tagteam:ontologyMatchOWLType",
+        "@type": "@id"
+      },
+      "tagteam:classNominationStatus": {
+        "@type": "@id"
+      },
       "ActSpecification": "tagteam:ActSpecification",
       "Agent": "tagteam:Agent",
       "DirectiveInformationContentEntity": "tagteam:DirectiveInformationContentEntity",
@@ -43,96 +222,15 @@
       "Permission": "tagteam:Permission",
       "Person": "tagteam:Person",
       "PlanSpecification": "tagteam:PlanSpecification",
-      "dcterms": "http://purl.org/dc/terms/",
-      "has_agent": {
-        "@id": "tagteam:has_agent",
-        "@type": "@id"
-      },
-      "has_input": {
-        "@id": "tagteam:has_input",
-        "@type": "@id"
-      },
-      "has_output": {
-        "@id": "tagteam:has_output",
-        "@type": "@id"
-      },
-      "has_text_value": "tagteam:has_text_value",
-      "inheres_in": {
-        "@id": "tagteam:inheres_in",
-        "@type": "@id"
-      },
-      "inst": "urn:tagteam:instance:",
-      "isSpecifiedBy": {
-        "@id": "tagteam:isSpecifiedBy",
-        "@type": "@id"
-      },
-      "is_about": {
-        "@id": "tagteam:is_about",
-        "@type": "@id"
-      },
-      "is_concretized_by": {
-        "@id": "tagteam:is_concretized_by",
-        "@type": "@id"
-      },
-      "is_prescribed_by": {
-        "@id": "tagteam:is_prescribed_by",
-        "@type": "@id"
-      },
-      "is_subject_of": {
-        "@id": "tagteam:is_subject_of",
-        "@type": "@id"
-      },
-      "ontologyMatch": {
-        "@container": "@set",
-        "@id": "tagteam:ontologyMatch"
-      },
-      "ontologyMatchConfidence": {
-        "@id": "tagteam:ontologyMatchConfidence",
-        "@type": "xsd:decimal"
-      },
-      "ontologyMatchEvidence": "tagteam:ontologyMatchEvidence",
-      "ontologyMatchForm": "tagteam:ontologyMatchForm",
-      "ontologyMatchIRI": {
-        "@id": "tagteam:ontologyMatchIRI",
-        "@type": "@id"
-      },
-      "ontologyMatchInflection": "tagteam:ontologyMatchInflection",
-      "ontologyMatchLabel": "tagteam:ontologyMatchLabel",
-      "ontologyMatchType": "tagteam:ontologyMatchType",
-      "owl": "http://www.w3.org/2002/07/owl#",
-      "prescribes": {
-        "@id": "tagteam:prescribes",
-        "@type": "@id"
-      },
-      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-      "sc": "https://semanticore.fandaws.org/ns/",
-      "sc:code": {
-        "@type": "@id"
-      },
-      "sc:graphForRecord": {
-        "@type": "@id"
-      },
-      "sc:namedGraph": {
-        "@type": "@id"
-      },
-      "sc:path": {
-        "@container": "@list",
-        "@type": "@id"
-      },
-      "sc:record": {
-        "@type": "@id"
-      },
-      "sc:status": {
-        "@type": "@id"
-      },
-      "schema": "https://schema.org/",
-      "tagteam": "https://tagteam.fandaws.org/ontology/",
-      "tagteam:classNominationStatus": {
-        "@type": "@id"
-      },
-      "xsd": "http://www.w3.org/2001/XMLSchema#"
+      "Process": "tagteam:Process",
+      "Role": "tagteam:Role"
     },
+    "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0",
+    "@type": "sc:TagTeamGraph",
+    "sc:graphForRecord": {
+      "@id": "urn:semanticore:record:example:0"
+    },
+    "sc:graphIndex": 0,
     "@graph": [
       {
         "@id": "urn:tagteam:entity:committee",
@@ -148,90 +246,7 @@
         "schema:name": "shall review",
         "tagteam:deontic": true
       }
-    ],
-    "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0",
-    "@type": "sc:TagTeamGraph",
-    "sc:graphForRecord": {
-      "@id": "urn:semanticore:record:example:0"
-    },
-    "sc:graphIndex": 0
-  },
-  "sc:record": {
-    "@id": "urn:semanticore:record:example:0",
-    "@type": [
-      "sc:EnrichedRecord",
-      "sc:SourceRecord"
-    ],
-    "sc:semanticEnrichment": {
-      "@context": {
-        "dcterms": "http://purl.org/dc/terms/",
-        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-        "sc": "https://semanticore.fandaws.org/ns/",
-        "sc:code": {
-          "@type": "@id"
-        },
-        "sc:graphForRecord": {
-          "@type": "@id"
-        },
-        "sc:namedGraph": {
-          "@type": "@id"
-        },
-        "sc:path": {
-          "@container": "@list",
-          "@type": "@id"
-        },
-        "sc:record": {
-          "@type": "@id"
-        },
-        "sc:status": {
-          "@type": "@id"
-        },
-        "schema": "https://schema.org/",
-        "tagteam": "https://tagteam.fandaws.org/ontology/",
-        "xsd": "http://www.w3.org/2001/XMLSchema#"
-      },
-      "@id": "urn:semanticore:enrichment:urn-semanticore-record-example-0:0",
-      "@type": "sc:TagTeamEnrichment",
-      "sc:namedGraph": {
-        "@id": "urn:semanticore:graph:urn-semanticore-record-example-0:0"
-      },
-      "sc:sourcePropertyPath": {
-        "@type": "sc:PropertyPath",
-        "sc:languagePolicy": {
-          "@type": "sc:LanguagePolicy",
-          "sc:acceptedLanguage": "en",
-          "sc:onLanguageMissing": {
-            "@id": "sc:AcceptPlainLiteral"
-          }
-        },
-        "sc:multiValuePolicy": {
-          "@id": "sc:EnrichEachValue"
-        },
-        "sc:path": [
-          {
-            "@id": "sc:source"
-          },
-          {
-            "@id": "schema:description"
-          }
-        ]
-      },
-      "sc:sourceText": "The committee shall review the proposal.",
-      "sc:status": {
-        "@id": "sc:EnrichmentSucceeded"
-      },
-      "sc:summary": {
-        "@type": "sc:TagTeamSummary",
-        "sc:actCount": 1,
-        "sc:deonticDetected": true,
-        "sc:entityCount": 1,
-        "sc:roleCount": 0
-      },
-      "sc:tagTeamVersion": "7.0.0"
-    },
-    "sc:source": {
-      "schema:description": "The committee shall review the proposal."
-    }
+    ]
   },
   "sc:warnings": []
 }

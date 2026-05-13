@@ -72,8 +72,11 @@ test("GitHub Pages app emits a usable TagTeam graph context", () => {
   strictEqual(js.includes('owl: "http://www.w3.org/2002/07/owl#"'), true);
   strictEqual(js.includes('is_about: { "@id": "tagteam:is_about", "@type": "@id" }'), true);
   strictEqual(js.includes('is_concretized_by: { "@id": "tagteam:is_concretized_by", "@type": "@id" }'), true);
+  strictEqual(js.includes('is_bearer_of: { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" }'), true);
+  strictEqual(js.includes('realized_in: { "@id": "tagteam:realized_in", "@type": "@id" }'), true);
   strictEqual(js.includes('ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" }'), true);
   strictEqual(js.includes('ontologyMatchIRI: { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" }'), true);
+  strictEqual(js.includes('ontologyMatchOWLType: { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" }'), true);
   strictEqual(js.includes("runtimeGraphContext"), true);
 });
 
@@ -82,6 +85,8 @@ test("GitHub Pages app reports ontology bridge status per graph", () => {
   strictEqual(js.includes("sc:ontologyOptionPassed"), true);
   strictEqual(js.includes("sc:ontologyOptionStatus"), true);
   strictEqual(js.includes("sc:ontologyMatchCount"), true);
+  strictEqual(js.includes("sc:ontologyCompilePropertyMap"), true);
+  strictEqual(js.includes('keywords: "rdfs:label"'), true);
 });
 
 test("GitHub Pages app makes the TagTeam text source explicit", () => {

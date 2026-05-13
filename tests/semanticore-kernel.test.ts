@@ -136,9 +136,14 @@ test("TagTeam graph context maps TagTeam prefixes and relation terms", () => {
   deepStrictEqual(context?.owl, "http://www.w3.org/2002/07/owl#");
   deepStrictEqual(context?.is_about, { "@id": "tagteam:is_about", "@type": "@id" });
   deepStrictEqual(context?.is_concretized_by, { "@id": "tagteam:is_concretized_by", "@type": "@id" });
+  deepStrictEqual(context?.is_bearer_of, { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" });
+  deepStrictEqual(context?.realized_in, { "@id": "tagteam:realized_in", "@type": "@id" });
   deepStrictEqual(context?.ontologyMatch, { "@id": "tagteam:ontologyMatch", "@container": "@set" });
   deepStrictEqual(context?.ontologyMatchIRI, { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" });
+  deepStrictEqual(context?.ontologyMatchOWLType, { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" });
   deepStrictEqual(context?.EventDescription, "tagteam:EventDescription");
+  deepStrictEqual(context?.Process, "tagteam:Process");
+  deepStrictEqual(context?.Role, "tagteam:Role");
 });
 
 console.log(`\n  ${passed} passed, ${failed} failed`);
