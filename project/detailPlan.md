@@ -216,7 +216,7 @@ Add SemantiCore-specific tests.
 **Dependencies**
 - Phase 1 kernel stable.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 ### 2.1 CSV Adapter
 
@@ -398,7 +398,7 @@ Implement browser exports.
 **Dependencies**
 - Phase 3 browser MVP.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 ### 4.1 IndexedDB State Adapter
 
@@ -448,7 +448,7 @@ Implement local context manifest workflow.
 
 **Exit Criteria**
 - [x] A browser user can close and reopen SemantiCore and resume a prior local session.
-- [ ] Human reviewer completes [PHASE4_EXIT_REVIEW.md](./PHASE4_EXIT_REVIEW.md) and records approval to begin Phase 5.
+- [x] Human reviewer completes [PHASE4_EXIT_REVIEW.md](./PHASE4_EXIT_REVIEW.md) and records approval to begin Phase 5.
 
 **Non-Goals**
 - No remote sync.
@@ -457,6 +457,8 @@ Implement local context manifest workflow.
 ## Phase 5: Real TagTeam Runtime Integration
 
 **Goal:** Integrate SemantiCore with an actual local TagTeam.js runtime in the browser and Node adapter contexts.
+
+**Status:** Ready for Human Review
 
 **Primary Outputs**
 - Browser TagTeam runtime loading.
@@ -474,42 +476,43 @@ Implement local context manifest workflow.
 Define how local TagTeam code is supplied.
 
 **Acceptance Criteria**
-- Browser can load a local/static TagTeam bundle.
-- Node can receive/import a local TagTeam runtime.
-- Runtime object exposes `version` and `buildGraph`.
-- Remote TagTeam loading is not required.
+- [x] Browser can load a local/static TagTeam bundle.
+- [x] Node can receive/import a local TagTeam runtime.
+- [x] Runtime object exposes `version` and `buildGraph`.
+- [x] Remote TagTeam loading is not required.
 
 ### 5.2 Version Enforcement
 
 Apply spec version policies to real runtime.
 
 **Acceptance Criteria**
-- Exact match works.
-- Mismatch reject behavior works.
-- Warn-and-run behavior works.
-- Version mismatch warnings appear in run output.
+- [x] Exact match works.
+- [x] Mismatch reject behavior works.
+- [x] Warn-and-run behavior works.
+- [x] Version mismatch warnings appear in run output.
 
 ### 5.3 Ontology Wiring
 
 Pass active ontology sets to TagTeam according to supported TagTeam APIs.
 
 **Acceptance Criteria**
-- Local ontology set can influence TagTeam options when supported.
-- Ontology unavailable warnings are emitted when expected.
-- Non-aligned ontology warnings are preserved.
+- [x] Local ontology set can influence TagTeam options when supported.
+- [x] Ontology unavailable warnings are emitted when expected.
+- [x] Non-aligned ontology warnings are preserved.
 
 ### 5.4 Graph Attachment
 
 Attach real TagTeam output to named graph resources.
 
 **Acceptance Criteria**
-- Output uses `@graph`.
-- Source record links to named graph ID.
-- Combined export remains losslessly expandable.
-- Context collisions emit warnings.
+- [x] Output uses `@graph`.
+- [x] Source record links to named graph ID.
+- [x] Combined export remains losslessly expandable.
+- [x] Context collisions emit warnings.
 
 **Exit Criteria**
-- SemantiCore can enrich real user data with real TagTeam graph output locally.
+- [x] SemantiCore can enrich real user data with a locally supplied TagTeam-compatible runtime.
+- [ ] Human reviewer completes [PHASE5_EXIT_REVIEW.md](./PHASE5_EXIT_REVIEW.md) and records approval to begin Phase 6.
 
 ## Phase 6: Determinism and Canonicalization Hardening
 

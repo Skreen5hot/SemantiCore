@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase4">
+  <link rel="stylesheet" href="./styles.css?v=phase5">
 </head>
 <body>
   <header class="topbar">
@@ -14,25 +14,25 @@
     </div>
     <nav class="toplinks" aria-label="Project links">
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE4_EXIT_REVIEW.md">Phase 4 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE5_EXIT_REVIEW.md">Phase 5 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 4 in progress</p>
-        <h2>Import, enrich, save, restore, and manage local semantics.</h2>
+        <p class="stage">Phase 5 in progress</p>
+        <h2>Run local TagTeam.js, inspect the runtime, and keep every artifact on the edge.</h2>
         <p>
-          This browser workbench keeps sessions, ontology sets, and context manifests local to your browser. It does not upload data or require a server.
+          This browser workbench can use its deterministic fallback or a local TagTeam.js bundle supplied in the page. It does not upload data or require a server.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Local state and sessions</strong>
+          <strong>Runtime integration</strong>
         </div>
-        <p>Save the current workbench, reload, restore it, and inspect the session JSON-LD.</p>
+        <p>Load a local TagTeam bundle, enforce version policy, and attach graph output as JSON-LD named graphs.</p>
       </div>
     </section>
 
@@ -120,10 +120,48 @@
     </section>
 
     <section class="state-grid" aria-label="Local state and manifests">
-      <section class="panel session-panel" aria-labelledby="session-title">
+      <section class="panel runtime-panel" aria-labelledby="runtime-title">
         <div class="panel-heading">
           <div>
             <p class="step">4</p>
+            <h2 id="runtime-title">Runtime</h2>
+          </div>
+          <button id="detectRuntime" type="button">Detect Runtime</button>
+        </div>
+        <div class="field-row">
+          <label for="runtimeMode">Mode</label>
+          <select id="runtimeMode">
+            <option value="auto">Auto-detect local TagTeam</option>
+            <option value="stub">Deterministic fallback</option>
+          </select>
+          <label for="requiredVersion">Required version</label>
+          <input id="requiredVersion" type="text" value="7.0.0">
+          <label for="versionPolicy">Policy</label>
+          <select id="versionPolicy">
+            <option value="sc:RejectOnMismatch">Reject mismatch</option>
+            <option value="sc:WarnAndRunOnMismatch">Warn and run</option>
+            <option value="sc:AllowCompatibleMinor">Allow compatible minor</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label class="file-button" for="tagTeamBundleInput">Load Local TagTeam Bundle</label>
+          <input id="tagTeamBundleInput" type="file" accept=".js,text/javascript,application/javascript">
+          <label class="checkbox">
+            <input id="useOntologies" type="checkbox" checked>
+            Pass enabled ontology TTL when supported
+          </label>
+        </div>
+        <p id="runtimeStatus" class="muted">No runtime detection has run yet.</p>
+        <details open>
+          <summary>Runtime diagnostics JSON-LD</summary>
+          <pre id="runtimePreview"></pre>
+        </details>
+      </section>
+
+      <section class="panel session-panel" aria-labelledby="session-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">5</p>
             <h2 id="session-title">Session</h2>
           </div>
           <div class="button-group">
@@ -145,7 +183,7 @@
       <section class="panel ontology-panel" aria-labelledby="ontology-title">
         <div class="panel-heading">
           <div>
-            <p class="step">5</p>
+            <p class="step">6</p>
             <h2 id="ontology-title">Ontologies</h2>
           </div>
           <button id="addOntology" type="button">Add Ontology</button>
@@ -172,7 +210,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       <section class="panel context-panel" aria-labelledby="context-title">
         <div class="panel-heading">
           <div>
-            <p class="step">6</p>
+            <p class="step">7</p>
             <h2 id="context-title">Context</h2>
           </div>
         </div>
@@ -224,6 +262,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase4" type="module"></script>
+  <script src="./main.js?v=phase5" type="module"></script>
 </body>
 </html>

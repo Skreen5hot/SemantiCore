@@ -129,20 +129,17 @@ Extend the template tests with SemantiCore-specific conformance cases.
 
 ---
 
-## Phase 2: Edge Adapters and Browser Workbench
+## Phase 2: Ingestion and Export Adapters
 
 **Goal:** Add local-first adapters around the pure kernel.
 
 **Status:** Complete
 
-Planned adapter surfaces:
+Completed adapter surfaces:
 - [x] CSV ingestion with mapping manifest.
 - [x] Plain JSON ingestion with JSON Pointer selection.
 - [x] JSON-LD passthrough validation.
 - [x] JSON-LD, graph bundle, and CSV summary exports.
-- [ ] Browser file import/export.
-- [ ] IndexedDB session, ontology, dataset, run, and named graph storage.
-- [ ] Static browser UI backed by local adapters.
 
 **NOT in scope:**
 - Required servers.
@@ -151,22 +148,51 @@ Planned adapter surfaces:
 
 ---
 
-## Phase 3: TagTeam Integration and Ontology UX
+## Phase 3: Browser Workbench MVP
 
-**Goal:** Wire the browser app to a local TagTeam runtime and ontology/session management workflow.
+**Goal:** Make the GitHub Pages app visibly usable for local input, mapping, enrichment, inspection, and export.
 
-**Status:** In Progress
+**Status:** Complete
 
-Planned surfaces:
-- Local TagTeam bundle loading.
-- TagTeam version policy enforcement.
-- Ontology upload and set management.
-- Record-level graph viewing.
-- Enriched JSON-LD and CSV summary export.
+Completed surfaces:
+- [x] Browser sample/local import.
+- [x] Mapping editor and mapping JSON-LD preview.
+- [x] Local enrichment runner using deterministic fallback runtime.
+- [x] Result table and output inspector.
+- [x] JSON-LD, graph bundle, and CSV summary exports.
 
 ---
 
-## Phase 4: Production Hardening
+## Phase 4: Local State, Sessions, and Ontology Management
+
+**Goal:** Preserve local browser work and expose ontology/context/session state as JSON-LD.
+
+**Status:** Complete
+
+Completed surfaces:
+- [x] IndexedDB-backed browser session save/restore.
+- [x] Session snapshot JSON-LD inspector/export.
+- [x] Ontology manager with local Turtle content and CCO/BFO declaration.
+- [x] Context manifest JSON-LD inspector.
+
+---
+
+## Phase 5: Real TagTeam Runtime Integration
+
+**Goal:** Integrate a locally supplied TagTeam.js runtime in browser and Node adapter contexts.
+
+**Status:** Ready for Human Review
+
+Completed surfaces:
+- [x] Browser runtime diagnostics panel.
+- [x] Local TagTeam bundle loader.
+- [x] Runtime version policy controls.
+- [x] Node adapter for TagTeam-like runtime objects.
+- [x] Ontology option wiring when `OntologyTextTagger.fromTTL` exists.
+
+---
+
+## Phase 6: Determinism and Canonicalization Hardening
 
 **Goal:** Make SemantiCore robust enough for repeated local use and downstream graph consumers.
 
@@ -175,6 +201,4 @@ Planned surfaces:
 Planned surfaces:
 - Larger conformance corpus.
 - Deterministic canonicalization hardening.
-- Accessibility pass.
-- GitHub Pages polish.
 - Fandaws/FNSR export validation hooks.

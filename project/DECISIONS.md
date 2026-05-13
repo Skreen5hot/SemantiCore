@@ -200,6 +200,38 @@
 
 ---
 
+## ADR-013: Approve Phase 4 and Begin Phase 5
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 4 is approved. Begin Phase 5: real TagTeam runtime integration.
+
+**Context:** The PO reviewed the local-state workbench and approved session save/restore, ontology management, context inspection, and the no-required-infrastructure boundary. The next visible product question is whether SemantiCore can run against an actual local TagTeam.js runtime.
+
+**Consequences:**
+- Phase 4 is marked complete.
+- Phase 5 is marked in progress.
+- Runtime loading and version policy behavior must be visible in the browser workbench.
+- The kernel must continue to receive an injected runtime and must not import TagTeam directly.
+
+---
+
+## ADR-014: Load TagTeam as a Local Runtime Adapter
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 5 supports a locally supplied TagTeam.js runtime through browser `window.TagTeam` detection or an explicit local bundle file, with a deterministic fallback runtime kept visible.
+
+**Context:** TagTeam.js publishes a browser/Node bundle exposing `version`, `buildGraph`, and optional ontology APIs. SemantiCore cannot require a remote server, CDN, package registry, or cloud runtime, so TagTeam must be supplied as a local/static runtime object at the adapter boundary.
+
+**Consequences:**
+- GitHub Pages can run without a TagTeam bundle and still demonstrate deterministic fallback behavior.
+- A reviewer can load a local `tagteam.js` bundle into the page and see runtime diagnostics before enrichment.
+- Node code can adapt any TagTeam-like object without a hard runtime dependency.
+- Version mismatch and ontology-support behavior are represented as JSON-LD warnings.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

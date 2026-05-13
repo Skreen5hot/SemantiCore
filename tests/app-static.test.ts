@@ -32,9 +32,9 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("CSV Summary"), true);
 });
 
-test("GitHub Pages app advertises Phase 4 status", () => {
-  strictEqual(html.includes("Phase 4 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 4"'), true);
+test("GitHub Pages app advertises Phase 5 status", () => {
+  strictEqual(html.includes("Phase 5 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 5"'), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -44,6 +44,17 @@ test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
   strictEqual(html.includes("Ontology set JSON-LD"), true);
   strictEqual(html.includes("Context manifest JSON-LD"), true);
   strictEqual(js.includes("indexedDB.open"), true);
+});
+
+test("GitHub Pages app exposes visible Phase 5 runtime controls", () => {
+  strictEqual(html.includes("Load Local TagTeam Bundle"), true);
+  strictEqual(html.includes("Runtime diagnostics JSON-LD"), true);
+  strictEqual(html.includes("Reject mismatch"), true);
+  strictEqual(js.includes("window.TagTeam"), true);
+  strictEqual(js.includes("OntologyTextTagger"), true);
+  strictEqual(js.includes("fromTTL"), true);
+  strictEqual(js.includes("sc:TagTeamVersionMismatch"), true);
+  strictEqual(js.includes("sc:ContextCollision"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

@@ -179,7 +179,7 @@ main {
 }
 
 .state-grid {
-  grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) minmax(280px, 0.8fr);
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
   margin-top: 16px;
 }
 
@@ -227,7 +227,7 @@ textarea {
 }
 
 .field-row select {
-  max-width: 120px;
+  max-width: 220px;
 }
 
 input[type="file"] {
@@ -247,6 +247,10 @@ textarea {
 
 #ontologyContent {
   min-height: 120px;
+}
+
+.runtime-panel {
+  grid-column: 1 / -1;
 }
 
 .muted {

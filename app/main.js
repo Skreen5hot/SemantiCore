@@ -1,4 +1,5 @@
-const phaseLabel = "Phase 4";
+const phaseLabel = "Phase 5";
+const fallbackRuntimeVersion = "7.0.0";
 
 const sampleCsv = `description,title,source
 The agency shall publish the notice.,Publication duty,Regulation A
@@ -17,6 +18,11 @@ const state = {
   savedSession: null,
   ontologySet: null,
   contextManifest: null,
+  runtime: null,
+  runtimeMode: "auto",
+  requiredTagTeamVersion: fallbackRuntimeVersion,
+  versionPolicy: "sc:RejectOnMismatch",
+  runtimeWarnings: [],
   outputView: "dataset",
 };
 
@@ -52,6 +58,14 @@ const el = {
   ontologyList: document.querySelector("#ontologyList"),
   ontologyPreview: document.querySelector("#ontologyPreview"),
   contextPreview: document.querySelector("#contextPreview"),
+  runtimeMode: document.querySelector("#runtimeMode"),
+  detectRuntime: document.querySelector("#detectRuntime"),
+  tagTeamBundleInput: document.querySelector("#tagTeamBundleInput"),
+  requiredVersion: document.querySelector("#requiredVersion"),
+  versionPolicy: document.querySelector("#versionPolicy"),
+  useOntologies: document.querySelector("#useOntologies"),
+  runtimeStatus: document.querySelector("#runtimeStatus"),
+  runtimePreview: document.querySelector("#runtimePreview"),
 };
 
 document.documentElement.dataset.phase = phaseLabel;
@@ -97,6 +111,25 @@ el.saveSession.addEventListener("click", saveSession);
 el.restoreSession.addEventListener("click", restoreSession);
 el.clearSession.addEventListener("click", clearSession);
 el.addOntology.addEventListener("click", addOntology);
+el.detectRuntime.addEventListener("click", () => {
+  refreshRuntimeStatus("Runtime detection refreshed.");
+});
+el.runtimeMode.addEventListener("change", () => {
+  state.runtimeMode = el.runtimeMode.value;
+  refreshRuntimeStatus("Runtime mode updated.");
+});
+el.requiredVersion.addEventListener("input", () => {
+  state.requiredTagTeamVersion = el.requiredVersion.value.trim() || fallbackRuntimeVersion;
+  refreshRuntimeStatus("Version policy updated.");
+});
+el.versionPolicy.addEventListener("change", () => {
+  state.versionPolicy = el.versionPolicy.value;
+  refreshRuntimeStatus("Version policy updated.");
+});
+el.useOntologies.addEventListener("change", () => {
+  refreshRuntimeStatus("Ontology option updated.");
+});
+el.tagTeamBundleInput.addEventListener("change", loadLocalTagTeamBundle);
 
 document.querySelectorAll("[data-output]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -155,10 +188,12 @@ function runEnrichment() {
   if (!state.dataset) normalize();
   if (!state.dataset) return;
 
+  const runtime = getActiveRuntime();
+  const versionDecision = evaluateVersionPolicy(runtime.version);
   const graphs = [];
-  const warnings = [];
+  const warnings = [...runtime.warnings, ...versionDecision.warnings];
   const records = state.dataset["sc:records"].map((record, index) => {
-    const result = enrichRecord(record, index);
+    const result = enrichRecord(record, index, runtime, versionDecision);
     if (result.graph) graphs.push(result.graph);
     warnings.push(...result.warnings);
     return result.record;
@@ -171,19 +206,33 @@ function runEnrichment() {
     "sc:records": records,
     "sc:graphs": graphs,
     "sc:warnings": warnings,
+    "sc:runtime": runtime.diagnostics,
     records,
     graphs,
     warnings,
   };
-  el.inputStatus.textContent = `Enriched ${records.length} record(s) locally.`;
+  const runtimeLabel = runtime.kind === "tagteam" ? `TagTeam ${runtime.version}` : "deterministic fallback runtime";
+  el.inputStatus.textContent = `Enriched ${records.length} record(s) locally with ${runtimeLabel}.`;
   renderAll();
 }
 
-function enrichRecord(record, index) {
+function enrichRecord(record, index, runtime, versionDecision) {
   const warnings = [];
   const sourceProperty = firstTextProperty();
   const source = record["sc:source"] || {};
   const sourceText = source[sourceProperty];
+
+  if (!versionDecision.canRun) {
+    return {
+      record: {
+        ...record,
+        "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
+        "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentFailed", "", null, null, runtime.version),
+      },
+      graph: null,
+      warnings,
+    };
+  }
 
   if (typeof sourceText !== "string" || sourceText.trim() === "") {
     warnings.push(makeWarning("sc:MissingSourceText", "No string value was found at the configured source property path.", record["@id"]));
@@ -191,27 +240,43 @@ function enrichRecord(record, index) {
       record: {
         ...record,
         "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
-        "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSkipped", "", null, null),
+        "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSkipped", "", null, null, runtime.version),
       },
       graph: null,
       warnings,
     };
   }
 
-  const graph = buildGraph(record["@id"], index, sourceText);
+  let graphResult;
+  try {
+    graphResult = buildRuntimeGraph(record["@id"], index, sourceText, runtime);
+  } catch (error) {
+    warnings.push(makeWarning("sc:TagTeamRuntimeError", error.message || String(error), record["@id"]));
+    return {
+      record: {
+        ...record,
+        "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
+        "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentFailed", sourceText, null, null, runtime.version),
+      },
+      graph: null,
+      warnings,
+    };
+  }
+  const graph = graphResult.graph;
+  warnings.push(...graphResult.warnings);
   const summary = summarizeGraph(graph);
   return {
     record: {
       ...record,
       "@type": ["sc:EnrichedRecord", "sc:SourceRecord"],
-      "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSucceeded", sourceText, graph["@id"], summary),
+      "sc:semanticEnrichment": makeEnrichment(record["@id"], index, "sc:EnrichmentSucceeded", sourceText, graph["@id"], summary, runtime.version),
     },
     graph,
     warnings,
   };
 }
 
-function makeEnrichment(recordId, index, status, sourceText, graphId, summary) {
+function makeEnrichment(recordId, index, status, sourceText, graphId, summary, tagTeamVersion = fallbackRuntimeVersion) {
   const enrichment = {
     "@id": `urn:semanticore:enrichment:${stableFragment(recordId)}:${index}`,
     "@type": "sc:TagTeamEnrichment",
@@ -221,7 +286,7 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary) {
       "sc:path": [{ "@id": "sc:source" }, { "@id": firstTextProperty() }],
       "sc:multiValuePolicy": { "@id": "sc:EnrichEachValue" },
     },
-    "sc:tagTeamVersion": "7.0.0-stub",
+    "sc:tagTeamVersion": tagTeamVersion,
   };
   if (sourceText) enrichment["sc:sourceText"] = sourceText;
   if (graphId) enrichment["sc:namedGraph"] = { "@id": graphId };
@@ -229,7 +294,24 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary) {
   return enrichment;
 }
 
-function buildGraph(recordId, index, text) {
+function buildRuntimeGraph(recordId, index, text, runtime) {
+  const output = runtime.buildGraph(text, buildTagTeamOptions());
+  const nodes = extractGraphNodes(output);
+  return {
+    graph: {
+      "@context": coreContext(),
+      "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+      "@type": "sc:TagTeamGraph",
+      "sc:graphForRecord": { "@id": recordId },
+      "sc:graphIndex": index,
+      "sc:runtimeKind": { "@id": runtime.kind === "tagteam" ? "sc:TagTeamRuntime" : "sc:DeterministicFallbackRuntime" },
+      "@graph": nodes,
+    },
+    warnings: contextCollisionWarnings(output, recordId),
+  };
+}
+
+function buildFallbackGraph(recordId, index, text) {
   const words = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
@@ -267,6 +349,145 @@ function summarizeGraph(graph) {
     "sc:actCount": graph["@graph"].filter((node) => Array.isArray(node["@type"]) && node["@type"].includes("tagteam:Act")).length,
     "sc:roleCount": 0,
     "sc:deonticDetected": graph["@graph"].some((node) => node["tagteam:deontic"] === true),
+  };
+}
+
+function extractGraphNodes(tagTeamOutput) {
+  if (Array.isArray(tagTeamOutput)) return tagTeamOutput.filter(isObject).map((node) => structuredClone(node));
+  if (tagTeamOutput && Array.isArray(tagTeamOutput["@graph"])) {
+    return tagTeamOutput["@graph"].filter(isObject).map((node) => structuredClone(node));
+  }
+  if (tagTeamOutput && isObject(tagTeamOutput)) return [structuredClone(tagTeamOutput)];
+  throw new Error("TagTeam buildGraph returned an unsupported graph shape.");
+}
+
+function contextCollisionWarnings(tagTeamOutput, recordId) {
+  if (!isObject(tagTeamOutput) || !isObject(tagTeamOutput["@context"])) return [];
+  const context = tagTeamOutput["@context"];
+  const expected = coreContext();
+  return Object.entries(expected)
+    .filter(([term, iriValue]) => typeof iriValue === "string" && typeof context[term] === "string" && context[term] !== iriValue)
+    .map(([term]) => makeWarning("sc:ContextCollision", `TagTeam output context remaps '${term}' differently than the SemantiCore context.`, recordId));
+}
+
+function getActiveRuntime() {
+  const tagTeam = state.runtimeMode === "stub" ? null : window.TagTeam;
+  if (tagTeam && typeof tagTeam.buildGraph === "function") {
+    const version = typeof tagTeam.version === "string" ? tagTeam.version : "unknown";
+    const ontologySupport = Boolean(tagTeam.OntologyTextTagger?.fromTTL);
+    const warnings = runtimeOntologyWarnings(ontologySupport);
+    return {
+      kind: "tagteam",
+      version,
+      warnings,
+      diagnostics: runtimeDiagnostics("tagteam", version, ontologySupport, warnings),
+      buildGraph(text, options) {
+        return tagTeam.buildGraph(text, options);
+      },
+    };
+  }
+
+  const warnings = runtimeOntologyWarnings(false).filter((warning) => el.useOntologies.checked);
+  return {
+    kind: "fallback",
+    version: fallbackRuntimeVersion,
+    warnings,
+    diagnostics: runtimeDiagnostics("fallback", fallbackRuntimeVersion, false, warnings),
+    buildGraph(text) {
+      return buildFallbackGraph("urn:semanticore:runtime:fallback", 0, text);
+    },
+  };
+}
+
+function buildTagTeamOptions() {
+  const options = {
+    ontologyThreshold: 0.2,
+    verbose: false,
+  };
+  const tagTeam = window.TagTeam;
+  if (!el.useOntologies.checked || !tagTeam?.OntologyTextTagger?.fromTTL) return options;
+  const ttl = enabledOntologyContent().join("\n\n");
+  if (!ttl.trim()) return options;
+  options.ontology = tagTeam.OntologyTextTagger.fromTTL(ttl, {
+    ontologyThreshold: options.ontologyThreshold,
+    verbose: options.verbose,
+  });
+  return options;
+}
+
+function enabledOntologyContent() {
+  const ontologySet = buildOntologySet();
+  return ontologySet.ontologies
+    .filter((ontology) => ontology["sc:enabled"] && typeof ontology["sc:content"] === "string")
+    .map((ontology) => ontology["sc:content"]);
+}
+
+function runtimeOntologyWarnings(ontologySupport) {
+  const warnings = [];
+  const enabled = buildOntologySet().ontologies.filter((ontology) => ontology["sc:enabled"]);
+  if (enabled.length > 0 && !ontologySupport) {
+    warnings.push(makeWarning("sc:OntologyUnavailable", "Enabled ontology TTL is visible but the active runtime does not expose OntologyTextTagger.fromTTL."));
+  }
+  enabled
+    .filter((ontology) => ontology["sc:ontologyAlignment"]?.["@id"] !== "sc:CCO2BFO2020Aligned")
+    .forEach((ontology) => {
+      warnings.push(makeWarning("sc:NonCCOAlignedOntology", `Ontology ${ontology["@id"]} is not declared as CCO 2.0 / BFO 2020 aligned.`));
+    });
+  return warnings;
+}
+
+function runtimeDiagnostics(kind, version, ontologySupport, warnings) {
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:runtime:browser",
+    "@type": kind === "tagteam" ? "sc:TagTeamRuntime" : "sc:DeterministicFallbackRuntime",
+    "sc:runtimeMode": { "@id": state.runtimeMode === "stub" ? "sc:DeterministicFallback" : "sc:AutoDetectLocalRuntime" },
+    "sc:tagTeamVersion": version,
+    "sc:requiredTagTeamVersion": state.requiredTagTeamVersion,
+    "sc:tagTeamVersionPolicy": { "@id": state.versionPolicy },
+    "sc:ontologySupport": ontologySupport,
+    "sc:enabledOntologyCount": buildOntologySet().ontologies.filter((ontology) => ontology["sc:enabled"]).length,
+    "sc:warnings": warnings,
+  };
+}
+
+function evaluateVersionPolicy(runtimeVersion) {
+  const required = state.requiredTagTeamVersion || fallbackRuntimeVersion;
+  const exactMatch = runtimeVersion === required;
+  let canRun = exactMatch;
+  if (state.versionPolicy === "sc:WarnAndRunOnMismatch") {
+    canRun = true;
+  }
+  if (state.versionPolicy === "sc:AllowCompatibleMinor") {
+    canRun = isCompatibleMinor(required, runtimeVersion);
+  }
+  const warnings = exactMatch || canRun && state.versionPolicy !== "sc:WarnAndRunOnMismatch" ? [] : [
+    makeWarning("sc:TagTeamVersionMismatch", `TagTeam runtime version ${runtimeVersion} does not satisfy required version ${required} under ${state.versionPolicy}.`),
+  ];
+  if (!canRun && warnings.length === 0) {
+    warnings.push(makeWarning("sc:TagTeamVersionMismatch", `TagTeam runtime version ${runtimeVersion} does not satisfy required version ${required} under ${state.versionPolicy}.`));
+  }
+  return { canRun, warnings };
+}
+
+function isCompatibleMinor(required, actual) {
+  const requiredParts = parseSemver(required);
+  const actualParts = parseSemver(actual);
+  return Boolean(
+    requiredParts &&
+    actualParts &&
+    requiredParts.major === actualParts.major &&
+    actualParts.minor >= requiredParts.minor,
+  );
+}
+
+function parseSemver(value) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(value);
+  if (!match) return null;
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
   };
 }
 
@@ -403,6 +624,7 @@ function renderAll() {
   renderOntology();
   renderContext();
   renderSession();
+  renderRuntime();
   renderResults();
   renderOutput();
 }
@@ -592,11 +814,18 @@ async function restoreSession() {
   state.run = snapshot["sc:snapshot"]["sc:run"] || null;
   state.ontologySet = snapshot["sc:snapshot"]["sc:ontologySet"] || defaultOntologySet();
   state.contextManifest = snapshot["sc:snapshot"]["sc:contextManifest"] || buildContextManifest();
+  state.runtime = snapshot["sc:snapshot"]["sc:runtime"] || null;
+  state.runtimeMode = snapshot["sc:snapshot"]["sc:runtimeMode"] || "auto";
+  state.requiredTagTeamVersion = snapshot["sc:snapshot"]["sc:requiredTagTeamVersion"] || fallbackRuntimeVersion;
+  state.versionPolicy = snapshot["sc:snapshot"]["sc:tagTeamVersionPolicy"] || "sc:RejectOnMismatch";
 
   el.formatSelect.value = state.format;
   el.sourceInput.value = snapshot["sc:snapshot"]["sc:sourceText"] || "";
   el.hasHeaderRow.checked = snapshot["sc:snapshot"]["sc:hasHeaderRow"] !== false;
   el.jsonPointer.value = snapshot["sc:snapshot"]["sc:jsonPointer"] || "/records";
+  el.runtimeMode.value = state.runtimeMode;
+  el.requiredVersion.value = state.requiredTagTeamVersion;
+  el.versionPolicy.value = state.versionPolicy;
   renderMapping();
   renderOntology();
   renderAll();
@@ -646,6 +875,10 @@ function buildSessionSnapshot() {
     "sc:run": state.run,
     "sc:ontologySet": state.ontologySet || defaultOntologySet(),
     "sc:contextManifest": state.contextManifest || buildContextManifest(),
+    "sc:runtime": state.runtime || getActiveRuntime().diagnostics,
+    "sc:runtimeMode": state.runtimeMode,
+    "sc:requiredTagTeamVersion": state.requiredTagTeamVersion,
+    "sc:tagTeamVersionPolicy": state.versionPolicy,
   };
   const contentHash = `sha256:${simpleHash(stableStringify(snapshot))}`;
   return {
@@ -698,6 +931,72 @@ function renderOntology() {
 function renderContext() {
   state.contextManifest = buildContextManifest();
   el.contextPreview.textContent = stableStringify(state.contextManifest, 2);
+}
+
+async function loadLocalTagTeamBundle() {
+  const file = el.tagTeamBundleInput.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const url = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
+    await injectScript(url);
+    URL.revokeObjectURL(url);
+    state.runtimeMode = "auto";
+    el.runtimeMode.value = "auto";
+    refreshRuntimeStatus(`${file.name} loaded into this browser tab.`);
+  } catch (error) {
+    el.runtimeStatus.innerHTML = `<span class="danger">${escapeHtml(error.message || String(error))}</span>`;
+    renderRuntime();
+  }
+}
+
+function injectScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = url;
+    script.onload = () => {
+      script.remove();
+      resolve();
+    };
+    script.onerror = () => {
+      script.remove();
+      reject(new Error("The selected TagTeam bundle could not be executed."));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function refreshRuntimeStatus(message) {
+  state.runtimeMode = el.runtimeMode.value;
+  state.requiredTagTeamVersion = el.requiredVersion.value.trim() || fallbackRuntimeVersion;
+  state.versionPolicy = el.versionPolicy.value;
+  const runtime = getActiveRuntime();
+  state.runtime = runtime.diagnostics;
+  state.runtimeWarnings = runtime.warnings;
+  const versionDecision = evaluateVersionPolicy(runtime.version);
+  const label = runtime.kind === "tagteam" ? `TagTeam ${runtime.version}` : "deterministic fallback runtime";
+  const decision = versionDecision.canRun ? "can run" : "is blocked by version policy";
+  el.runtimeStatus.textContent = `${message} Active runtime: ${label}; ${decision}.`;
+  renderRuntime();
+}
+
+function renderRuntime() {
+  const runtime = getActiveRuntime();
+  const versionDecision = evaluateVersionPolicy(runtime.version);
+  state.runtime = runtime.diagnostics;
+  state.runtimeWarnings = runtime.warnings;
+  el.runtimePreview.textContent = stableStringify({
+    ...runtime.diagnostics,
+    "sc:versionDecision": {
+      "@type": "sc:VersionDecision",
+      "sc:canRun": versionDecision.canRun,
+      "sc:warnings": versionDecision.warnings,
+    },
+  }, 2);
+  if (!el.runtimeStatus.textContent || el.runtimeStatus.textContent === "No runtime detection has run yet.") {
+    const label = runtime.kind === "tagteam" ? `TagTeam ${runtime.version}` : "deterministic fallback runtime";
+    el.runtimeStatus.textContent = `Active runtime: ${label}.`;
+  }
 }
 
 function buildOntologySet() {
@@ -888,8 +1187,14 @@ function escapeCsvCell(value) {
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 state.ontologySet = defaultOntologySet();
 state.contextManifest = buildContextManifest();
+state.runtime = getActiveRuntime().diagnostics;
 renderMapping();
 el.sourceInput.value = sampleCsv;
 normalize();
+refreshRuntimeStatus("Runtime initialized.");
