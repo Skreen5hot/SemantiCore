@@ -87,6 +87,7 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes("runtimeGraphContext"), true);
   strictEqual(js.includes("buildGraphBundle"), true);
   strictEqual(js.includes("stripGraphContext"), true);
+  strictEqual(js.includes('const { "@context": _context, ...namedGraph } = graph;'), true);
   strictEqual(js.includes('"sc:graphs": runGraphs()'), false);
 });
 

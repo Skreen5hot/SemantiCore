@@ -136,7 +136,15 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   strictEqual(graphBundle.includes('"@type": "sc:GraphBundle"'), true);
   const parsedGraphBundle = JSON.parse(graphBundle);
   strictEqual(Array.isArray(parsedGraphBundle["@graph"]), true);
-  strictEqual(parsedGraphBundle["@graph"][0]["@context"], undefined);
+  const bundledGraph = parsedGraphBundle["@graph"][0];
+  strictEqual(bundledGraph["@context"], undefined);
+  strictEqual(bundledGraph["@id"], "urn:semanticore:graph:export:0");
+  strictEqual(bundledGraph["@type"], "sc:TagTeamGraph");
+  strictEqual(bundledGraph["sc:graphForRecord"]["@id"], "urn:semanticore:record:export:0");
+  strictEqual(bundledGraph["sc:graphIndex"], 0);
+  strictEqual(bundledGraph["sc:ontologyBridge"]["@type"], "sc:OntologyBridgeReport");
+  strictEqual(bundledGraph["sc:ontologyBridge"]["sc:ontologyMatchCount"], 1);
+  strictEqual(bundledGraph["sc:tagTeamMetadata"].entities, 1);
   strictEqual(
     csv.split("\n")[0],
     "recordId,enrichmentStatus,sourceText,entityCount,actCount,roleCount,deonticDetected,namedGraphId,warningErrorCodes",
@@ -204,10 +212,27 @@ function enrichedExportInput(): EnrichedExportInput {
       },
     },
     "sc:graph": {
+      "@context": {
+        tagteam: "http://tagteam.fandaws.com/ontology/",
+      },
       "@id": "urn:semanticore:graph:export:0",
       "@type": "sc:TagTeamGraph",
       "sc:graphForRecord": { "@id": "urn:semanticore:record:export:0" },
       "sc:graphIndex": 0,
+      "sc:ontologyBridge": {
+        "@type": "sc:OntologyBridgeReport",
+        "sc:ontologyOptionStatus": { "@id": "sc:OntologyCompiledAndPassed" },
+        "sc:ontologyOptionPassed": true,
+        "sc:ontologyCompileMode": { "@id": "sc:TagTeamDefaultPriorityChain" },
+        "sc:enabledOntologyCount": 1,
+        "sc:compiledOntologyCount": 1,
+        "sc:ontologyMatchCount": 1,
+      },
+      "sc:tagTeamMetadata": {
+        entities: 1,
+        acts: 0,
+        sentences: [{ sentenceIndex: 0 }],
+      },
       "@graph": [
         {
           "@id": "urn:tagteam:entity:agency",

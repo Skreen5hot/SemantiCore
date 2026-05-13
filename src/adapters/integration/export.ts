@@ -76,9 +76,8 @@ function collectGraphs(input: EnrichedExportInput): NamedGraph[] {
 }
 
 function stripGraphContext(graph: NamedGraph): NamedGraph {
-  const copy = structuredClone(graph);
-  delete copy["@context"];
-  return copy;
+  const { "@context": _context, ...namedGraph } = graph;
+  return structuredClone(namedGraph) as NamedGraph;
 }
 
 function consolidatedGraphContext(graphs: NamedGraph[]): JsonValue {

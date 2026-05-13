@@ -1037,9 +1037,8 @@ function buildGraphBundle() {
 }
 
 function stripGraphContext(graph) {
-  const copy = structuredClone(graph);
-  delete copy["@context"];
-  return copy;
+  const { "@context": _context, ...namedGraph } = graph;
+  return structuredClone(namedGraph);
 }
 
 function consolidatedGraphContext(graphs) {
