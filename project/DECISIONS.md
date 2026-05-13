@@ -277,6 +277,7 @@
 - Browser and Node graph wrappers define `tagteam:`, `inst:`, `rdfs:`, `owl:`, `bfo:`, and `cco:` without redefining TagTeam-owned bare terms.
 - If a TagTeam runtime supplies its own `@context`, SemantiCore layers that runtime context after the wrapper context and avoids conflicting duplicate term definitions.
 - `tagteam:` and `inst:` are aligned to the namespaces emitted by the active TagTeam serializer.
+- Graph bundle exports consolidate graph contexts at the bundle root and strip repeated per-record `@context` blocks from named graph entries.
 - The graph boundary remains an adapter concern; SemantiCore does not rewrite TagTeam nodes.
 
 ---

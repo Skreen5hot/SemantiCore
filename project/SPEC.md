@@ -506,6 +506,8 @@ TagTeam output MUST be attached as a JSON-LD named graph resource. It MUST NOT b
 }
 ```
 
+Graph bundle exports SHOULD consolidate contexts into one top-level `@context` and represent per-record TagTeam outputs as named graph resources in a top-level `@graph` array. The named graph entries SHOULD NOT repeat the same context once per record.
+
 Combined exports MUST reconcile contexts:
 
 - absolute IRIs MUST be preserved;

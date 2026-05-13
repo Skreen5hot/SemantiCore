@@ -134,6 +134,9 @@ test("export utilities produce graph bundle and required CSV summary columns", (
 
   strictEqual(canonical.includes("sc:TransformResult"), true);
   strictEqual(graphBundle.includes('"@type": "sc:GraphBundle"'), true);
+  const parsedGraphBundle = JSON.parse(graphBundle);
+  strictEqual(Array.isArray(parsedGraphBundle["@graph"]), true);
+  strictEqual(parsedGraphBundle["@graph"][0]["@context"], undefined);
   strictEqual(
     csv.split("\n")[0],
     "recordId,enrichmentStatus,sourceText,entityCount,actCount,roleCount,deonticDetected,namedGraphId,warningErrorCodes",

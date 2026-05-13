@@ -85,6 +85,9 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes('Process: "tagteam:Process"'), false);
   strictEqual(js.includes('ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" }'), false);
   strictEqual(js.includes("runtimeGraphContext"), true);
+  strictEqual(js.includes("buildGraphBundle"), true);
+  strictEqual(js.includes("stripGraphContext"), true);
+  strictEqual(js.includes('"sc:graphs": runGraphs()'), false);
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {

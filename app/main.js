@@ -1017,20 +1017,48 @@ function ontologyMatchCountForGraph(graph) {
 function exportFor(kind) {
   if (kind === "dataset") return stableStringify(state.dataset || {}, 2);
   if (kind === "enriched" || kind === "jsonld") return stableStringify(state.run || {}, 2);
-  if (kind === "graphs") {
-    return stableStringify({
-      "@context": tagTeamGraphContext(),
-      "@id": "urn:semanticore:graph-bundle:browser-demo",
-      "@type": "sc:GraphBundle",
-      "schema:name": "TagTeam JSON-LD graph bundle",
-      "sc:graphs": runGraphs(),
-    }, 2);
-  }
+  if (kind === "graphs") return stableStringify(buildGraphBundle(), 2);
   if (kind === "warnings") return stableStringify(runWarnings(), 2);
   if (kind === "csv") return csvSummary();
   if (kind === "hashes") return stableStringify(canonicalHashReport(), 2);
   if (kind === "session") return stableStringify(buildSessionSnapshot(), 2);
   return "";
+}
+
+function buildGraphBundle() {
+  const graphs = runGraphs();
+  return {
+    "@context": consolidatedGraphContext(graphs),
+    "@id": "urn:semanticore:graph-bundle:browser-demo",
+    "@type": "sc:GraphBundle",
+    "schema:name": "TagTeam JSON-LD graph bundle",
+    "@graph": graphs.map(stripGraphContext),
+  };
+}
+
+function stripGraphContext(graph) {
+  const copy = structuredClone(graph);
+  delete copy["@context"];
+  return copy;
+}
+
+function consolidatedGraphContext(graphs) {
+  return graphs.reduce((context, graph) => {
+    return mergeContexts(context, graph["@context"]);
+  }, tagTeamGraphContext());
+}
+
+function mergeContexts(baseContext, nextContext) {
+  if (nextContext === undefined || nextContext === null) return baseContext;
+  if (Array.isArray(nextContext)) {
+    return nextContext.reduce((context, item) => mergeContexts(context, item), baseContext);
+  }
+  if (!isObject(nextContext)) return baseContext;
+  const merged = { ...baseContext };
+  Object.entries(nextContext).forEach(([term, value]) => {
+    merged[term] = structuredClone(value);
+  });
+  return merged;
 }
 
 function canonicalHashReport() {
@@ -1042,13 +1070,7 @@ function canonicalHashReport() {
     "sc:hashAlgorithm": "sha256",
     "sc:dataset": hashReference(state.dataset, "urn:semanticore:dataset:none"),
     "sc:run": hashReference(state.run, "urn:semanticore:run:none"),
-    "sc:graphBundle": hashReference({
-      "@context": tagTeamGraphContext(),
-      "@id": "urn:semanticore:graph-bundle:browser-demo",
-      "@type": "sc:GraphBundle",
-      "schema:name": "TagTeam JSON-LD graph bundle",
-      "sc:graphs": runGraphs(),
-    }, "urn:semanticore:graph-bundle:none"),
+    "sc:graphBundle": hashReference(buildGraphBundle(), "urn:semanticore:graph-bundle:none"),
     "sc:warnings": {
       "@id": "urn:semanticore:warnings:browser-demo",
       "sc:contentHash": canonicalContentHash(runWarnings()),

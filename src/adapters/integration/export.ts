@@ -1,5 +1,5 @@
 import type { EnrichedExportInput } from "./types.js";
-import type { NamedGraph, SourceRecord, WarningResource } from "../../kernel/index.js";
+import type { JsonValue, NamedGraph, SourceRecord, WarningResource } from "../../kernel/index.js";
 import { stableStringify } from "../../kernel/index.js";
 import { TAGTEAM_GRAPH_CONTEXT } from "../../kernel/vocabulary.js";
 
@@ -23,10 +23,10 @@ export function exportGraphBundle(input: EnrichedExportInput): string {
   const graphs = collectGraphs(input);
   return stableStringify(
     {
-      "@context": TAGTEAM_GRAPH_CONTEXT,
+      "@context": consolidatedGraphContext(graphs),
       "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
       "@type": "sc:GraphBundle",
-      "sc:graphs": graphs,
+      "@graph": graphs.map(stripGraphContext),
     },
     true,
   );
@@ -73,6 +73,37 @@ function collectGraphs(input: EnrichedExportInput): NamedGraph[] {
     return input["sc:graph"];
   }
   return input["sc:graph"] ? [input["sc:graph"]] : [];
+}
+
+function stripGraphContext(graph: NamedGraph): NamedGraph {
+  const copy = structuredClone(graph);
+  delete copy["@context"];
+  return copy;
+}
+
+function consolidatedGraphContext(graphs: NamedGraph[]): JsonValue {
+  return graphs.reduce<JsonValue>((context, graph) => mergeContexts(context, graph["@context"]), TAGTEAM_GRAPH_CONTEXT);
+}
+
+function mergeContexts(baseContext: JsonValue, nextContext: JsonValue | undefined): JsonValue {
+  if (nextContext === undefined || nextContext === null) {
+    return baseContext;
+  }
+  if (Array.isArray(nextContext)) {
+    return nextContext.reduce<JsonValue>((context, item) => mergeContexts(context, item), baseContext);
+  }
+  if (!isPlainObject(nextContext) || !isPlainObject(baseContext)) {
+    return baseContext;
+  }
+  const merged: Record<string, JsonValue> = { ...baseContext };
+  for (const [term, value] of Object.entries(nextContext)) {
+    merged[term] = structuredClone(value) as JsonValue;
+  }
+  return merged;
+}
+
+function isPlainObject(value: JsonValue): value is Record<string, JsonValue> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function firstEnrichment(record: SourceRecord): Record<string, any> | null {
