@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase6-runtime-adapter">
+  <link rel="stylesheet" href="./styles.css?v=phase7">
 </head>
 <body>
   <header class="topbar">
@@ -14,25 +14,27 @@
     </div>
     <nav class="toplinks" aria-label="Project links">
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE6_EXIT_REVIEW.md">Phase 6 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/ROADMAP.md">Roadmap</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore">GitHub</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE7_EXIT_REVIEW.md">Phase 7 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 6 in progress</p>
-        <h2>Canonical JSON-LD, stable hashes, and reproducible local graph output.</h2>
+        <p class="stage">Phase 7 in progress</p>
+        <h2>Accessible local workflows, clearer exports, and safer large-file handling.</h2>
         <p>
-          This browser workbench now tightens the JSON-LD envelope, removes demo-only output duplicates, and exposes SHA-256 hashes over canonical bytes.
+          This browser workbench keeps data local while making the export path clearer for named graph bundles, flat triple-store ingestion, sessions, and summaries.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Determinism hardening</strong>
+          <strong>Production pages polish</strong>
         </div>
-        <p>Run locally, inspect canonical hashes, and keep the runtime boundary explicit.</p>
+        <p>Run locally, inspect graph output, and choose the export shape your downstream tool expects.</p>
       </div>
     </section>
 
@@ -59,7 +61,7 @@
 
         <label for="sourceInput">Source data</label>
         <textarea id="sourceInput" spellcheck="false"></textarea>
-        <p id="inputStatus" class="muted">Load the sample or import a local file to begin.</p>
+        <p id="inputStatus" class="muted" role="status" aria-live="polite">Load the sample or import a local file to begin.</p>
       </section>
 
       <section class="panel mapping-panel" aria-labelledby="mapping-title">
@@ -155,7 +157,7 @@
             Pass enabled ontology TTL when supported
           </label>
         </div>
-        <p id="runtimeStatus" class="muted">No runtime detection has run yet.</p>
+        <p id="runtimeStatus" class="muted" role="status" aria-live="polite">No runtime detection has run yet.</p>
         <details open>
           <summary>Runtime diagnostics JSON-LD</summary>
           <pre id="runtimePreview"></pre>
@@ -174,7 +176,7 @@
             <button id="clearSession" type="button">Clear</button>
           </div>
         </div>
-        <p id="sessionStatus" class="muted">No saved session loaded yet.</p>
+        <p id="sessionStatus" class="muted" role="status" aria-live="polite">No saved session loaded yet.</p>
         <div class="button-group">
           <button type="button" data-download="session">Download Session Snapshot</button>
         </div>
@@ -251,6 +253,27 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       </div>
 
       <section class="output-panel" aria-label="Output inspector">
+        <section class="export-guide" aria-labelledby="export-guide-title">
+          <div>
+            <p class="step">Export Guide</p>
+            <h2 id="export-guide-title">Choose an Output Shape</h2>
+          </div>
+          <dl>
+            <div>
+              <dt>TagTeam Graphs</dt>
+              <dd>Named JSON-LD graph bundle with per-record wrappers, hashes, runtime evidence, and metadata.</dd>
+            </div>
+            <div>
+              <dt>Flat Graphs</dt>
+              <dd>Flat triple-store import with one top-level graph for stores that do not ingest nested named graph objects.</dd>
+            </div>
+            <div>
+              <dt>Session Snapshot</dt>
+              <dd>Local work state, configuration, manifests, datasets, and run output for restore or review.</dd>
+            </div>
+          </dl>
+          <p class="muted">Files, bundles, ontologies, sessions, and exports stay in this browser tab unless you download them.</p>
+        </section>
         <section class="graph-focus" aria-labelledby="graph-focus-title">
           <div>
             <p class="step">TagTeam Output</p>
@@ -260,7 +283,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
             <label for="selectedGraphSelect">Record graph</label>
             <select id="selectedGraphSelect" aria-label="Selected TagTeam record graph"></select>
           </div>
-          <p id="graphFocusSummary" class="muted">Run enrichment to inspect a per-record TagTeam graph directly; the TagTeam Graphs tab contains the full graph bundle.</p>
+          <p id="graphFocusSummary" class="muted" role="status" aria-live="polite">Run enrichment to inspect a per-record TagTeam graph directly; the TagTeam Graphs tab contains the full graph bundle.</p>
           <pre id="selectedGraphPreview"></pre>
         </section>
         <div class="output-toolbar">
@@ -274,17 +297,23 @@ ex:Notice a ex:InformationContentEntity .</textarea>
             <button type="button" data-output="hashes">Hashes</button>
           </div>
           <div class="button-group">
-            <button type="button" data-download="jsonld">Download JSON-LD</button>
-            <button type="button" data-download="graphs">Download Graphs</button>
-            <button type="button" data-download="flatGraphs">Download Flat JSON-LD</button>
-            <button type="button" data-download="csv">Download CSV</button>
+            <button type="button" data-download="jsonld" aria-describedby="download-jsonld-help">Download JSON-LD</button>
+            <button type="button" data-download="graphs" aria-describedby="download-graphs-help">Download Graphs</button>
+            <button type="button" data-download="flatGraphs" aria-describedby="download-flat-help">Download Flat JSON-LD</button>
+            <button type="button" data-download="csv" aria-describedby="download-csv-help">Download CSV</button>
           </div>
+        </div>
+        <div class="download-help" aria-label="Download format descriptions">
+          <span id="download-jsonld-help">Full enriched run envelope.</span>
+          <span id="download-graphs-help">Named graph bundle.</span>
+          <span id="download-flat-help">Flat triple-store ingest graph.</span>
+          <span id="download-csv-help">Tabular run summary.</span>
         </div>
         <pre id="outputPreview"></pre>
       </section>
     </section>
   </main>
 
-  <script src="./main.js?v=phase6-runtime-adapter" type="module"></script>
+  <script src="./main.js?v=phase7" type="module"></script>
 </body>
 </html>

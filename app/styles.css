@@ -412,6 +412,46 @@ td {
   padding: 14px;
 }
 
+.export-guide {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fbfa;
+  padding: 14px;
+}
+
+.export-guide h2 {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+}
+
+.export-guide dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.export-guide dl div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px;
+}
+
+.export-guide dt {
+  color: var(--accent-strong);
+  font-weight: 850;
+}
+
+.export-guide dd {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .graph-focus h2 {
   margin-bottom: 0;
   font-size: 1.05rem;
@@ -431,6 +471,15 @@ td {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.download-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: -4px 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 #outputPreview {
@@ -464,6 +513,10 @@ td {
   }
 
   .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .export-guide dl {
     grid-template-columns: 1fr;
   }
 }

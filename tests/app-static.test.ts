@@ -33,9 +33,10 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Selected TagTeam Record Graph"), true);
 });
 
-test("GitHub Pages app advertises Phase 6 status", () => {
-  strictEqual(html.includes("Phase 6 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 6"'), true);
+test("GitHub Pages app advertises Phase 7 status", () => {
+  strictEqual(html.includes("Phase 7 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 7"'), true);
+  strictEqual(html.includes("PHASE7_EXIT_REVIEW.md"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -66,6 +67,8 @@ test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
   strictEqual(html.includes("TagTeam Graphs"), true);
   strictEqual(html.includes("Flat Graphs"), true);
   strictEqual(html.includes("Download Flat JSON-LD"), true);
+  strictEqual(html.includes("Export Guide"), true);
+  strictEqual(html.includes("Flat triple-store import"), true);
   strictEqual(html.includes("full graph bundle"), true);
   strictEqual(html.includes("selectedGraphSelect"), true);
   strictEqual(js.includes("sc:tagTeamMetadata"), true);
@@ -99,6 +102,9 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes("normalizeJsonLdTypes"), true);
   strictEqual(js.includes('const parseTraceInclusion = "summary";'), true);
   strictEqual(js.includes('"sc:parseTraceInclusion": parseTraceInclusion'), true);
+  strictEqual(js.includes("confirmLargeFile"), true);
+  strictEqual(js.includes("previewText"), true);
+  strictEqual(js.includes("formatBytes"), true);
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {
@@ -132,6 +138,18 @@ test("GitHub Pages app exposes visible Phase 6 canonical hash output", () => {
   strictEqual(js.includes("canonicalContentHash"), true);
   strictEqual(/^\s+records,$/m.test(js), false);
   strictEqual(/^\s+graphs,$/m.test(js), false);
+});
+
+test("GitHub Pages app exposes Phase 7 accessibility and large-file guardrails", () => {
+  strictEqual(html.includes('role="status" aria-live="polite"'), true);
+  strictEqual(html.includes("Download format descriptions"), true);
+  strictEqual(html.includes("Roadmap"), true);
+  strictEqual(html.includes("GitHub"), true);
+  strictEqual(js.includes("largeFileWarningBytes"), true);
+  strictEqual(js.includes("largeRunWarningRecords"), true);
+  strictEqual(js.includes("outputPreviewSoftLimit"), true);
+  strictEqual(js.includes("window.confirm"), true);
+  strictEqual(js.includes("Run cancelled before enrichment"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

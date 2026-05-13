@@ -1,8 +1,11 @@
 import { createTagTeamRuntimeAdapter } from "./dist/adapters/integration/tagteam-runtime.js";
 
-const phaseLabel = "Phase 6";
+const phaseLabel = "Phase 7";
 const fallbackRuntimeVersion = "7.0.0";
 const parseTraceInclusion = "summary";
+const largeFileWarningBytes = 2 * 1024 * 1024;
+const largeRunWarningRecords = 1000;
+const outputPreviewSoftLimit = 600000;
 
 const sampleCsv = `Text,title,source
 The agency shall publish the notice.,Publication duty,Regulation A
@@ -97,6 +100,11 @@ el.loadSample.addEventListener("click", () => {
 el.fileInput.addEventListener("change", async () => {
   const file = el.fileInput.files?.[0];
   if (!file) return;
+  if (!confirmLargeFile(file, "source data")) {
+    el.fileInput.value = "";
+    setStatus(el.inputStatus, `${file.name} was not loaded.`);
+    return;
+  }
   const text = await file.text();
   el.sourceInput.value = text;
   const lowerName = file.name.toLowerCase();
@@ -112,7 +120,7 @@ el.fileInput.addEventListener("change", async () => {
       renderMapping();
     }
   }
-  el.inputStatus.textContent = `${file.name} loaded locally.`;
+  setStatus(el.inputStatus, `${file.name} loaded locally (${formatBytes(file.size)}).`);
   normalize();
 });
 
@@ -185,8 +193,9 @@ document.querySelectorAll("[data-download]").forEach((button) => {
       const type = kind === "csv" ? "text/csv" : "application/ld+json";
       assertValidDownload(kind, content, type);
       downloadText(`semanticore-${kind}.${extension}`, content, type);
+      setStatus(el.inputStatus, `${exportLabel(kind)} export prepared locally (${formatBytes(utf8Bytes(content).length)}).`);
     } catch (error) {
-      el.inputStatus.textContent = `Could not export ${kind}: ${error.message}`;
+      setStatus(el.inputStatus, `Could not export ${kind}: ${error.message}`);
     } finally {
       setTimeout(() => {
         activeDownloads.delete(kind);
@@ -236,6 +245,11 @@ function normalize() {
 function runEnrichment() {
   if (!state.dataset) normalize();
   if (!state.dataset) return;
+  const recordCount = state.dataset["sc:records"].length;
+  if (recordCount > largeRunWarningRecords && !window.confirm(`This run has ${recordCount} records and may take a while in the browser. Continue?`)) {
+    setStatus(el.inputStatus, `Run cancelled before enrichment. ${recordCount} record(s) remain normalized locally.`);
+    return;
+  }
 
   const runtime = getActiveRuntime();
   const versionDecision = evaluateVersionPolicy(runtime.version);
@@ -976,7 +990,8 @@ function renderResults() {
 }
 
 function renderOutput() {
-  el.outputPreview.textContent = exportFor(state.outputView);
+  const output = exportFor(state.outputView);
+  el.outputPreview.textContent = previewText(output, state.outputView);
 }
 
 function renderSelectedGraph() {
@@ -1222,6 +1237,48 @@ function assertValidDownload(kind, content, type) {
   }
 }
 
+function confirmLargeFile(file, label) {
+  if (file.size <= largeFileWarningBytes) return true;
+  return window.confirm(`${file.name} is ${formatBytes(file.size)}. Large ${label} files can make this browser tab slow. Continue loading it locally?`);
+}
+
+function previewText(output, kind) {
+  if (output.length <= outputPreviewSoftLimit) return output;
+  return [
+    `${exportLabel(kind)} is ${formatBytes(utf8Bytes(output).length)} and is too large for comfortable in-page preview.`,
+    "The full output is still available through the download buttons.",
+    "",
+    output.slice(0, outputPreviewSoftLimit),
+    "",
+    "...preview truncated...",
+  ].join("\n");
+}
+
+function exportLabel(kind) {
+  return {
+    dataset: "Dataset",
+    enriched: "Enriched JSON-LD",
+    jsonld: "Enriched JSON-LD",
+    graphs: "Named graph bundle",
+    flatGraphs: "Flat graph bundle",
+    warnings: "Warnings",
+    csv: "CSV summary",
+    hashes: "Hash report",
+    session: "Session snapshot",
+  }[kind] || kind;
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return "unknown size";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function setStatus(element, message) {
+  element.textContent = message;
+}
+
 async function saveSession() {
   readMappingRows();
   state.mappingManifest = buildMappingManifest();
@@ -1306,6 +1363,11 @@ function addOntology() {
 async function importOntologyFile() {
   const file = el.ontologyFileInput.files?.[0];
   if (!file) return;
+  if (!confirmLargeFile(file, "ontology TTL")) {
+    el.ontologyFileInput.value = "";
+    refreshRuntimeStatus(`${file.name} was not loaded.`);
+    return;
+  }
   try {
     const content = await file.text();
     const title = file.name.replace(/\.(ttl|turtle)$/i, "") || "Imported ontology";
@@ -1412,6 +1474,11 @@ function renderContext() {
 async function loadLocalTagTeamBundle() {
   const file = el.tagTeamBundleInput.files?.[0];
   if (!file) return;
+  if (!confirmLargeFile(file, "TagTeam bundle")) {
+    el.tagTeamBundleInput.value = "";
+    refreshRuntimeStatus(`${file.name} was not loaded.`);
+    return;
+  }
   try {
     const text = await file.text();
     const url = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));

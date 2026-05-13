@@ -196,7 +196,7 @@ Completed surfaces:
 
 **Goal:** Make SemantiCore robust enough for repeated local use and downstream graph consumers.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 Completed surfaces:
 - [x] Larger conformance corpus for canonical envelopes and hashes.
@@ -204,3 +204,18 @@ Completed surfaces:
 - [x] SHA-256 content hashes over canonical bytes.
 - [x] Browser Hashes output tab.
 - [x] RDFC-1.0 gap documented for future graph-level hardening.
+- [x] Flat graph export for triple stores that do not ingest nested JSON-LD named graph objects.
+
+---
+
+## Phase 7: Production Pages Polish and Accessibility
+
+**Goal:** Make the GitHub Pages app usable, resilient, and clear for real local workflows.
+
+**Status:** In Progress
+
+Initial surfaces:
+- [x] Phase 7 status and review links.
+- [x] Export format guidance for named graph, flat graph, session, and summary outputs.
+- [x] Accessible live status regions for primary app state.
+- [x] Large-file and large-run guardrails.

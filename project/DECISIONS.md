@@ -297,6 +297,22 @@
 
 ---
 
+## ADR-019: Approve Phase 6 and Begin Phase 7
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 6 is approved. Begin Phase 7: production pages polish and accessibility.
+
+**Context:** The PO reviewed the Phase 6 export chain and confirmed valid graph exports, clean graph IRIs, traceable bundle metadata, per-graph hashes, parse-trace summary mode, and flat triple-store ingest JSON-LD. Phase 7 should apply the lessons from that review to the product surface: export intent needs to be obvious, status updates need to be accessible, and large browser-local workflows need guardrails.
+
+**Consequences:**
+- Phase 6 is marked complete.
+- Phase 7 is marked in progress.
+- Export guidance becomes a primary UI concern, not only documentation.
+- Large local file and large run warnings are part of production-page polish.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 
