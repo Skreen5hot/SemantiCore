@@ -190,7 +190,11 @@
             <p class="step">6</p>
             <h2 id="ontology-title">Ontologies</h2>
           </div>
-          <button id="addOntology" type="button">Add Ontology</button>
+          <div class="button-group">
+            <label class="file-button" for="ontologyFileInput">Import TTL</label>
+            <input id="ontologyFileInput" type="file" accept=".ttl,.turtle,text/turtle">
+            <button id="addOntology" type="button">Add Ontology</button>
+          </div>
         </div>
         <div class="field-row">
           <label for="ontologyName">Name</label>

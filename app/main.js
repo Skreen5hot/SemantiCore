@@ -58,6 +58,7 @@ const el = {
   sessionStatus: document.querySelector("#sessionStatus"),
   sessionPreview: document.querySelector("#sessionPreview"),
   addOntology: document.querySelector("#addOntology"),
+  ontologyFileInput: document.querySelector("#ontologyFileInput"),
   ontologyName: document.querySelector("#ontologyName"),
   ontologyAlignment: document.querySelector("#ontologyAlignment"),
   ontologyContent: document.querySelector("#ontologyContent"),
@@ -127,6 +128,7 @@ el.saveSession.addEventListener("click", saveSession);
 el.restoreSession.addEventListener("click", restoreSession);
 el.clearSession.addEventListener("click", clearSession);
 el.addOntology.addEventListener("click", addOntology);
+el.ontologyFileInput.addEventListener("change", importOntologyFile);
 el.detectRuntime.addEventListener("click", () => {
   refreshRuntimeStatus("Runtime detection refreshed.");
 });
@@ -1124,9 +1126,30 @@ async function clearSession() {
 }
 
 function addOntology() {
-  if (!state.ontologySet) state.ontologySet = defaultOntologySet();
   const content = el.ontologyContent.value.trim();
   const title = el.ontologyName.value.trim() || "Untitled ontology";
+  addOntologyEntry(title, content, el.ontologyAlignment.value);
+}
+
+async function importOntologyFile() {
+  const file = el.ontologyFileInput.files?.[0];
+  if (!file) return;
+  try {
+    const content = await file.text();
+    const title = file.name.replace(/\.(ttl|turtle)$/i, "") || "Imported ontology";
+    el.ontologyName.value = title;
+    el.ontologyContent.value = content;
+    addOntologyEntry(title, content, el.ontologyAlignment.value);
+    el.ontologyFileInput.value = "";
+  } catch (error) {
+    el.runtimeStatus.innerHTML = `<span class="danger">${escapeHtml(error.message || String(error))}</span>`;
+  }
+}
+
+function addOntologyEntry(title, content, alignment) {
+  if (!state.ontologySet) state.ontologySet = defaultOntologySet();
+  const trimmedContent = content.trim();
+  if (!trimmedContent) return;
   const id = `urn:semanticore:ontology:${stableFragment(title)}:${state.ontologySet.ontologies.length}`;
   state.ontologySet.ontologies.push({
     "@id": id,
@@ -1134,11 +1157,12 @@ function addOntology() {
     "dcterms:title": title,
     "sc:enabled": true,
     "sc:mediaType": "text/turtle",
-    "sc:contentHash": textContentHash(content),
-    "sc:content": content,
-    "sc:ontologyAlignment": { "@id": el.ontologyAlignment.value },
+    "sc:contentHash": textContentHash(trimmedContent),
+    "sc:content": trimmedContent,
+    "sc:ontologyAlignment": { "@id": alignment },
   });
   renderOntology();
+  refreshRuntimeStatus(`Ontology ${title} added locally.`);
   renderSession();
 }
 

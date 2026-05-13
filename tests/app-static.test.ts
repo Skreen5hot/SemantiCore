@@ -42,9 +42,12 @@ test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
   strictEqual(html.includes("Save Session"), true);
   strictEqual(html.includes("Restore Session"), true);
   strictEqual(html.includes("Session JSON-LD"), true);
+  strictEqual(html.includes("Import TTL"), true);
+  strictEqual(html.includes("ontologyFileInput"), true);
   strictEqual(html.includes("Ontology set JSON-LD"), true);
   strictEqual(html.includes("Context manifest JSON-LD"), true);
   strictEqual(js.includes("indexedDB.open"), true);
+  strictEqual(js.includes("importOntologyFile"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 5 runtime controls", () => {
