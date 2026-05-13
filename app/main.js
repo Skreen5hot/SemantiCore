@@ -27,6 +27,7 @@ const state = {
   versionPolicy: "sc:RejectOnMismatch",
   runtimeWarnings: [],
   outputView: "dataset",
+  selectedGraphIndex: 0,
 };
 
 const el = {
@@ -51,6 +52,7 @@ const el = {
   resultsBody: document.querySelector("#resultsBody"),
   outputPreview: document.querySelector("#outputPreview"),
   graphFocusSummary: document.querySelector("#graphFocusSummary"),
+  selectedGraphSelect: document.querySelector("#selectedGraphSelect"),
   selectedGraphPreview: document.querySelector("#selectedGraphPreview"),
   saveSession: document.querySelector("#saveSession"),
   restoreSession: document.querySelector("#restoreSession"),
@@ -150,6 +152,10 @@ el.tagTeamSourceSelect.addEventListener("change", () => {
   renderMappingPreview();
   renderSession();
 });
+el.selectedGraphSelect.addEventListener("change", () => {
+  state.selectedGraphIndex = Number(el.selectedGraphSelect.value) || 0;
+  renderSelectedGraph();
+});
 el.useOntologies.addEventListener("change", () => {
   refreshRuntimeStatus("Ontology option updated.");
 });
@@ -235,6 +241,7 @@ function runEnrichment() {
     "sc:warnings": warnings,
     "sc:runtime": runtime.diagnostics,
   };
+  state.selectedGraphIndex = preferredSelectedGraphIndex(graphs);
   const runtimeLabel = runtime.kind === "tagteam" ? `TagTeam ${runtime.version}` : "deterministic fallback runtime";
   el.inputStatus.textContent = `Enriched ${records.length} record(s) locally with ${runtimeLabel}.`;
   renderAll();
@@ -945,9 +952,12 @@ function renderOutput() {
 }
 
 function renderSelectedGraph() {
-  const graph = runGraphs()[0];
+  const graphs = runGraphs();
+  syncSelectedGraphIndex(graphs);
+  renderSelectedGraphOptions(graphs);
+  const graph = graphs[state.selectedGraphIndex];
   if (!graph) {
-    el.graphFocusSummary.textContent = "Run enrichment to inspect the first TagTeam graph directly.";
+    el.graphFocusSummary.textContent = "Run enrichment to inspect a per-record TagTeam graph directly; the TagTeam Graphs tab contains the full graph bundle.";
     el.selectedGraphPreview.textContent = "";
     return;
   }
@@ -957,8 +967,51 @@ function renderSelectedGraph() {
   const recordId = graph["sc:graphForRecord"]?.["@id"] || "unknown record";
   const entityCount = metadata.entities ?? countGraphEntities(graph);
   const actCount = metadata.acts ?? countGraphActs(graph);
-  el.graphFocusSummary.textContent = `${recordId} | ${runtimeKind} | ${nodes} graph node(s), ${entityCount} entit(y/ies), ${actCount} act(s).`;
+  const matchCount = ontologyMatchCountForGraph(graph);
+  el.graphFocusSummary.textContent = `${recordId} | ${runtimeKind} | ${nodes} graph node(s), ${entityCount} entit(y/ies), ${actCount} act(s), ${matchCount} ontology match(es).`;
   el.selectedGraphPreview.textContent = stableStringify(graph, 2);
+}
+
+function renderSelectedGraphOptions(graphs) {
+  el.selectedGraphSelect.innerHTML = "";
+  graphs.forEach((graph, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = selectedGraphLabel(graph, index);
+    el.selectedGraphSelect.appendChild(option);
+  });
+  el.selectedGraphSelect.disabled = graphs.length === 0;
+  el.selectedGraphSelect.value = String(state.selectedGraphIndex);
+}
+
+function syncSelectedGraphIndex(graphs) {
+  if (graphs.length === 0) {
+    state.selectedGraphIndex = 0;
+    return;
+  }
+  if (!Number.isInteger(state.selectedGraphIndex) || state.selectedGraphIndex < 0 || state.selectedGraphIndex >= graphs.length) {
+    state.selectedGraphIndex = preferredSelectedGraphIndex(graphs);
+  }
+}
+
+function preferredSelectedGraphIndex(graphs) {
+  const matchedIndex = graphs.findIndex((graph) => ontologyMatchCountForGraph(graph) > 0);
+  if (matchedIndex >= 0) return matchedIndex;
+  return graphs.length > 0 ? 0 : 0;
+}
+
+function selectedGraphLabel(graph, index) {
+  const recordId = graph["sc:graphForRecord"]?.["@id"] || "unknown record";
+  const matchCount = ontologyMatchCountForGraph(graph);
+  const nodes = Array.isArray(graph["@graph"]) ? graph["@graph"].length : 0;
+  return `Graph ${index + 1} | ${matchCount} match(es) | ${nodes} node(s) | ${recordId}`;
+}
+
+function ontologyMatchCountForGraph(graph) {
+  const bridgeCount = Number(graph?.["sc:ontologyBridge"]?.["sc:ontologyMatchCount"]);
+  if (Number.isFinite(bridgeCount)) return bridgeCount;
+  const nodes = Array.isArray(graph?.["@graph"]) ? graph["@graph"] : [];
+  return countOntologyMatches(nodes);
 }
 
 function exportFor(kind) {
@@ -1093,6 +1146,7 @@ async function restoreSession() {
     state.tagTeamSourceProperty;
   state.dataset = snapshot["sc:snapshot"]["sc:dataset"] || null;
   state.run = snapshot["sc:snapshot"]["sc:run"] || null;
+  state.selectedGraphIndex = preferredSelectedGraphIndex(runGraphs());
   state.ontologySet = snapshot["sc:snapshot"]["sc:ontologySet"] || defaultOntologySet();
   state.contextManifest = snapshot["sc:snapshot"]["sc:contextManifest"] || buildContextManifest();
   state.runtime = snapshot["sc:snapshot"]["sc:runtime"] || null;

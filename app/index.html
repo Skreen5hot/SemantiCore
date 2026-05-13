@@ -254,9 +254,13 @@ ex:Notice a ex:InformationContentEntity .</textarea>
         <section class="graph-focus" aria-labelledby="graph-focus-title">
           <div>
             <p class="step">TagTeam Output</p>
-            <h2 id="graph-focus-title">Selected TagTeam Graph</h2>
+            <h2 id="graph-focus-title">Selected TagTeam Record Graph</h2>
           </div>
-          <p id="graphFocusSummary" class="muted">Run enrichment to inspect the first TagTeam graph directly.</p>
+          <div class="field-row">
+            <label for="selectedGraphSelect">Record graph</label>
+            <select id="selectedGraphSelect" aria-label="Selected TagTeam record graph"></select>
+          </div>
+          <p id="graphFocusSummary" class="muted">Run enrichment to inspect a per-record TagTeam graph directly; the TagTeam Graphs tab contains the full graph bundle.</p>
           <pre id="selectedGraphPreview"></pre>
         </section>
         <div class="output-toolbar">

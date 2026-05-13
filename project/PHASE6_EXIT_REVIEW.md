@@ -136,6 +136,7 @@ Expected:
 - The report includes `sc:ontologyCompileMode` showing that SemantiCore relies on TagTeam's default ontology priority chain.
 - The report includes `sc:compiledOntologyCount` so multi-ontology compilation is visible.
 - Named graph output preserves `_metadata` as `sc:tagTeamMetadata` when TagTeam returns it.
+- The selected TagTeam graph inspector can switch between per-record graphs and defaults to a graph with ontology matches when one exists.
 
 Block if:
 
@@ -143,6 +144,7 @@ Block if:
 - Enabled TTL documents are concatenated before compilation instead of compiled independently.
 - `_metadata` from TagTeam output is dropped.
 - Multi-ontology tagger merging drops `emitClauseAuthorityMatch`.
+- The graph inspector is hard-coded to the first graph when ontology matches exist only on later records.
 
 ### 6. Kernel Canonicalization
 
