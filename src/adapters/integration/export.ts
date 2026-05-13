@@ -35,6 +35,23 @@ export function exportGraphBundle(input: EnrichedExportInput): string {
   return stableStringify({ ...bundle, "sc:contentHash": canonicalContentHash(bundle) }, true);
 }
 
+export function exportFlatGraphBundle(input: EnrichedExportInput): string {
+  const graphs = collectGraphs(input);
+  const bundle = {
+    "@context": consolidatedGraphContext(graphs),
+    "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs:flat`,
+    "@type": ["sc:FlatGraphBundle"],
+    "schema:name": "TagTeam flat JSON-LD graph bundle",
+    "sc:sourceGraphBundle": { "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs` },
+    "sc:parseTraceInclusion": input["sc:parseTraceInclusion"] ?? "summary",
+    "sc:totalGraphs": graphs.length,
+    "sc:totalRecords": collectRecords(input).length,
+    "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),
+    "@graph": graphs.flatMap(flattenGraphNodes),
+  };
+  return stableStringify({ ...bundle, "sc:contentHash": canonicalContentHash(bundle) }, true);
+}
+
 export function exportCsvSummary(input: EnrichedExportInput): string {
   const records = collectRecords(input);
   const warnings = input["sc:warnings"] ?? [];
@@ -83,6 +100,17 @@ function stripGraphContext(graph: NamedGraph): NamedGraph {
   const normalizedGraph = normalizeJsonLdTypes(structuredClone(namedGraph)) as Record<string, JsonValue>;
   normalizedGraph["sc:contentHash"] = canonicalContentHash(normalizedGraph);
   return normalizedGraph as unknown as NamedGraph;
+}
+
+function flattenGraphNodes(graph: NamedGraph): Record<string, JsonValue>[] {
+  const nodes = Array.isArray(graph["@graph"]) ? graph["@graph"] : [];
+  return nodes.map((node) => {
+    const flatNode = normalizeJsonLdTypes(structuredClone(node)) as Record<string, JsonValue>;
+    delete flatNode["@context"];
+    flatNode["sc:sourceNamedGraph"] = { "@id": graph["@id"] };
+    flatNode["sc:graphForRecord"] = structuredClone(graph["sc:graphForRecord"]) as JsonValue;
+    return flatNode;
+  });
 }
 
 function normalizeJsonLdTypes(value: unknown): unknown {

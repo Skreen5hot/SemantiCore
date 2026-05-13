@@ -12,6 +12,12 @@
     "sc:record": {
       "@type": "@id"
     },
+    "sc:sourceGraphBundle": {
+      "@type": "@id"
+    },
+    "sc:sourceNamedGraph": {
+      "@type": "@id"
+    },
     "sc:status": {
       "@type": "@id"
     },
@@ -49,6 +55,12 @@
           "@type": "@id"
         },
         "sc:record": {
+          "@type": "@id"
+        },
+        "sc:sourceGraphBundle": {
+          "@type": "@id"
+        },
+        "sc:sourceNamedGraph": {
           "@type": "@id"
         },
         "sc:status": {
@@ -117,6 +129,12 @@
         "@type": "@id"
       },
       "sc:record": {
+        "@type": "@id"
+      },
+      "sc:sourceGraphBundle": {
+        "@type": "@id"
+      },
+      "sc:sourceNamedGraph": {
         "@type": "@id"
       },
       "sc:status": {

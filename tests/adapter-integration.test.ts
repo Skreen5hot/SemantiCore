@@ -3,6 +3,7 @@ import {
   csvToDataset,
   exportCanonicalJsonLd,
   exportCsvSummary,
+  exportFlatGraphBundle,
   exportGraphBundle,
   jsonLdToDataset,
   jsonToDataset,
@@ -130,6 +131,7 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   const input = enrichedExportInput();
   const canonical = exportCanonicalJsonLd(input);
   const graphBundle = exportGraphBundle(input);
+  const flatGraphBundle = exportFlatGraphBundle(input);
   const csv = exportCsvSummary(input);
 
   strictEqual(canonical.includes("sc:TransformResult"), true);
@@ -151,6 +153,12 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   deepStrictEqual(bundledGraph["sc:ontologyBridge"]["@type"], ["sc:OntologyBridgeReport"]);
   strictEqual(bundledGraph["sc:ontologyBridge"]["sc:ontologyMatchCount"], 1);
   strictEqual(bundledGraph["sc:tagTeamMetadata"].entities, 1);
+  const parsedFlatGraphBundle = JSON.parse(flatGraphBundle);
+  deepStrictEqual(parsedFlatGraphBundle["@type"], ["sc:FlatGraphBundle"]);
+  strictEqual(Array.isArray(parsedFlatGraphBundle["@graph"]), true);
+  strictEqual(parsedFlatGraphBundle["@graph"].some((node: Record<string, unknown>) => "@graph" in node), false);
+  strictEqual(parsedFlatGraphBundle["@graph"][0]["sc:sourceNamedGraph"]["@id"], "urn:semanticore:graph:export:0");
+  strictEqual(parsedFlatGraphBundle["@graph"][0]["sc:graphForRecord"]["@id"], "urn:semanticore:record:export:0");
   strictEqual(
     csv.split("\n")[0],
     "recordId,enrichmentStatus,sourceText,entityCount,actCount,roleCount,deonticDetected,namedGraphId,warningErrorCodes",

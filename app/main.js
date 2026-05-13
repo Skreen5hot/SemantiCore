@@ -1046,6 +1046,7 @@ function exportFor(kind) {
   if (kind === "dataset") return stableStringify(state.dataset || {}, 2);
   if (kind === "enriched" || kind === "jsonld") return stableStringify(state.run || {}, 2);
   if (kind === "graphs") return stableStringify(buildGraphBundle(), 2);
+  if (kind === "flatGraphs") return stableStringify(buildFlatGraphBundle(), 2);
   if (kind === "warnings") return stableStringify(runWarnings(), 2);
   if (kind === "csv") return csvSummary();
   if (kind === "hashes") return stableStringify(canonicalHashReport(), 2);
@@ -1073,6 +1074,42 @@ function buildGraphBundle() {
   };
   bundle["sc:contentHash"] = canonicalContentHash(bundle);
   return bundle;
+}
+
+function buildFlatGraphBundle() {
+  const graphs = runGraphs();
+  const bundle = {
+    "@context": consolidatedGraphContext(graphs),
+    "@id": "urn:semanticore:graph-bundle:browser-demo:flat",
+    "@type": ["sc:FlatGraphBundle"],
+    "schema:name": "TagTeam flat JSON-LD graph bundle",
+    "sc:sourceGraphBundle": { "@id": "urn:semanticore:graph-bundle:browser-demo" },
+    "sc:dataset": { "@id": state.dataset?.["@id"] || "urn:semanticore:dataset:none" },
+    "sc:mappingManifest": { "@id": (state.mappingManifest || buildMappingManifest())["@id"] },
+    "sc:ontologySet": { "@id": (state.ontologySet || defaultOntologySet())["@id"] },
+    "sc:contextManifest": { "@id": (state.contextManifest || buildContextManifest())["@id"] },
+    "sc:tagTeamVersion": state.run?.["sc:runtime"]?.["sc:tagTeamVersion"] || state.runtime?.["sc:tagTeamVersion"] || fallbackRuntimeVersion,
+    "sc:parseTraceInclusion": parseTraceInclusion,
+    "sc:totalGraphs": graphs.length,
+    "sc:totalRecords": runRecords().length,
+    "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),
+    "@graph": graphs.flatMap(flattenGraphNodes),
+  };
+  bundle["sc:contentHash"] = canonicalContentHash(bundle);
+  return bundle;
+}
+
+function flattenGraphNodes(graph) {
+  const graphId = graph["@id"];
+  const recordRef = graph["sc:graphForRecord"];
+  const nodes = Array.isArray(graph["@graph"]) ? graph["@graph"] : [];
+  return nodes.map((node) => {
+    const flatNode = normalizeJsonLdTypes(structuredClone(node));
+    delete flatNode["@context"];
+    flatNode["sc:sourceNamedGraph"] = { "@id": graphId };
+    if (recordRef) flatNode["sc:graphForRecord"] = structuredClone(recordRef);
+    return flatNode;
+  });
 }
 
 function stripGraphContext(graph) {
@@ -1580,6 +1617,9 @@ function coreContext() {
     "sc:record": { "@type": "@id" },
     "sc:status": { "@type": "@id" },
     "sc:namedGraph": { "@type": "@id" },
+    "sc:graphForRecord": { "@type": "@id" },
+    "sc:sourceGraphBundle": { "@type": "@id" },
+    "sc:sourceNamedGraph": { "@type": "@id" },
   };
 }
 

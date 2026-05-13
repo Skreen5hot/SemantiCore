@@ -64,6 +64,8 @@ test("GitHub Pages app exposes visible Phase 5 runtime controls", () => {
 test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
   strictEqual(html.includes("TagTeam Output"), true);
   strictEqual(html.includes("TagTeam Graphs"), true);
+  strictEqual(html.includes("Flat Graphs"), true);
+  strictEqual(html.includes("Download Flat JSON-LD"), true);
   strictEqual(html.includes("full graph bundle"), true);
   strictEqual(html.includes("selectedGraphSelect"), true);
   strictEqual(js.includes("sc:tagTeamMetadata"), true);
@@ -86,6 +88,8 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes('ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" }'), false);
   strictEqual(js.includes("runtimeGraphContext"), true);
   strictEqual(js.includes("buildGraphBundle"), true);
+  strictEqual(js.includes("buildFlatGraphBundle"), true);
+  strictEqual(js.includes("flattenGraphNodes"), true);
   strictEqual(js.includes("stripGraphContext"), true);
   strictEqual(js.includes('const { "@context": _context, ...namedGraph } = graph;'), true);
   strictEqual(js.includes('"sc:graphs": runGraphs()'), false);

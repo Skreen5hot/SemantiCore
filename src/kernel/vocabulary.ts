@@ -15,6 +15,8 @@ export const CORE_CONTEXT = {
   "sc:status": { "@type": "@id" },
   "sc:namedGraph": { "@type": "@id" },
   "sc:graphForRecord": { "@type": "@id" },
+  "sc:sourceGraphBundle": { "@type": "@id" },
+  "sc:sourceNamedGraph": { "@type": "@id" },
   "sc:path": { "@type": "@id", "@container": "@list" },
 } as const;
 
