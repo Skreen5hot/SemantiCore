@@ -67,7 +67,7 @@ test("TagTeam runtime adapter passes enabled ontology TTL when API supports it",
 
   const graph = runtime.buildGraph("Notice text.", tagTeamOptions(), ontologySet());
   strictEqual(ttlReceived.includes("ex:Notice"), true);
-  deepStrictEqual(optionsReceived?.propertyMap, { keywords: "rdfs:label", label: "rdfs:label" });
+  strictEqual(optionsReceived, undefined);
   deepStrictEqual(graph, [
     {
       "@id": "urn:tagteam:ontology-option",

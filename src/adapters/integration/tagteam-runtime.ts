@@ -40,19 +40,10 @@ export function buildTagTeamOptions(
 
   const ontologyContent = useOntologies ? enabledOntologyContent(ontologySet) : "";
   if (ontologyContent && tagTeam.OntologyTextTagger?.fromTTL) {
-    tagTeamOptions.ontology = tagTeam.OntologyTextTagger.fromTTL(ontologyContent, {
-      propertyMap: ontologyPropertyMap(),
-    });
+    tagTeamOptions.ontology = tagTeam.OntologyTextTagger.fromTTL(ontologyContent);
   }
 
   return tagTeamOptions;
-}
-
-export function ontologyPropertyMap(): Record<string, string> {
-  return {
-    keywords: "rdfs:label",
-    label: "rdfs:label",
-  };
 }
 
 export function normalizeTagTeamOutput(output: unknown): JsonLdNode | JsonLdNode[] {

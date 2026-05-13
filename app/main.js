@@ -479,7 +479,6 @@ function buildTagTeamOptions() {
     optionPassed: false,
     enabledOntologyCount: buildOntologySet().ontologies.filter((ontology) => ontology["sc:enabled"]).length,
     ontologyContentBytes: 0,
-    propertyMap: ontologyPropertyMap(),
   };
   const tagTeam = window.TagTeam;
   if (!el.useOntologies.checked) return { options, bridge };
@@ -489,18 +488,9 @@ function buildTagTeamOptions() {
   bridge.ontologyContentBytes = utf8Bytes(ttl).length;
   bridge.status = ttl.trim() ? "sc:OntologyCompiledAndPassed" : "sc:NoEnabledOntologyContent";
   if (!ttl.trim()) return { options, bridge };
-  options.ontology = tagTeam.OntologyTextTagger.fromTTL(ttl, {
-    propertyMap: ontologyPropertyMap(),
-  });
+  options.ontology = tagTeam.OntologyTextTagger.fromTTL(ttl);
   bridge.optionPassed = true;
   return { options, bridge };
-}
-
-function ontologyPropertyMap() {
-  return {
-    keywords: "rdfs:label",
-    label: "rdfs:label",
-  };
 }
 
 function ontologyBridgeReport(bridge, nodes) {
@@ -509,10 +499,7 @@ function ontologyBridgeReport(bridge, nodes) {
     "sc:ontologyOptionStatus": { "@id": bridge.status || "sc:OntologyUnknown" },
     "sc:ontologyOptionPassed": Boolean(bridge.optionPassed),
     "sc:ontologyOptionKey": "ontology",
-    "sc:ontologyCompilePropertyMap": {
-      "sc:keywordsProperty": bridge.propertyMap?.keywords || "rdfs:label",
-      "sc:labelProperty": bridge.propertyMap?.label || "rdfs:label",
-    },
+    "sc:ontologyCompileMode": { "@id": "sc:TagTeamDefaultPriorityChain" },
     "sc:enabledOntologyCount": Number(bridge.enabledOntologyCount || 0),
     "sc:ontologyContentBytes": Number(bridge.ontologyContentBytes || 0),
     "sc:ontologyMatchCount": countOntologyMatches(nodes),

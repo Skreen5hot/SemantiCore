@@ -85,8 +85,8 @@ test("GitHub Pages app reports ontology bridge status per graph", () => {
   strictEqual(js.includes("sc:ontologyOptionPassed"), true);
   strictEqual(js.includes("sc:ontologyOptionStatus"), true);
   strictEqual(js.includes("sc:ontologyMatchCount"), true);
-  strictEqual(js.includes("sc:ontologyCompilePropertyMap"), true);
-  strictEqual(js.includes('keywords: "rdfs:label"'), true);
+  strictEqual(js.includes("sc:ontologyCompileMode"), true);
+  strictEqual(js.includes("sc:TagTeamDefaultPriorityChain"), true);
 });
 
 test("GitHub Pages app makes the TagTeam text source explicit", () => {

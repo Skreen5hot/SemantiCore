@@ -29,7 +29,7 @@ What changed:
 - Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
 - Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
 - Added `sc:ontologyBridge` graph diagnostics so reviewers can see whether local ontology TTL was passed to TagTeam and how many `ontologyMatch` annotations returned.
-- Aligned ontology compilation with the TagTeam standalone demo by passing `propertyMap: { keywords: "rdfs:label", label: "rdfs:label" }` to `OntologyTextTagger.fromTTL`.
+- Aligned ontology compilation with TagTeam's built-in default priority chain by calling `OntologyTextTagger.fromTTL(ttl)` without a redundant `propertyMap`.
 - Extended graph context coverage for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
 
 Verification run before review:
@@ -38,7 +38,7 @@ Verification run before review:
 - `npm.cmd run test:purity`
 - `npm.cmd run build`
 - `node --check app/main.js`
-- Browser smoke test against local `app/` server confirming graph output includes `sc:ontologyCompilePropertyMap`.
+- Browser smoke test against local `app/` server confirming graph output includes `sc:ontologyCompileMode`.
 
 ## Purpose
 
@@ -128,7 +128,7 @@ Expected:
 - The report includes `sc:ontologyOptionStatus`.
 - The report includes `sc:ontologyOptionPassed`.
 - The report includes `sc:ontologyMatchCount`.
-- The report includes `sc:ontologyCompilePropertyMap` with `rdfs:label` mappings matching the TagTeam standalone demo.
+- The report includes `sc:ontologyCompileMode` showing that SemantiCore relies on TagTeam's default ontology priority chain.
 
 Block if:
 
@@ -212,7 +212,7 @@ Commit reviewed:
 - [ ] Graph output includes `sc:OntologyBridgeReport`.
 - [ ] Graph output includes `sc:ontologyOptionStatus`.
 - [ ] Graph output includes `sc:ontologyMatchCount`.
-- [ ] Graph output includes `sc:ontologyCompilePropertyMap`.
+- [ ] Graph output includes `sc:ontologyCompileMode`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.
