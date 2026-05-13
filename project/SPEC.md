@@ -90,7 +90,7 @@ SemantiCore uses the prefix `sc` for its own vocabulary.
 {
   "@context": {
     "sc": "https://semanticore.fandaws.org/ns/",
-    "tagteam": "https://tagteam.fandaws.org/ontology/",
+    "tagteam": "http://tagteam.fandaws.com/ontology/",
     "schema": "https://schema.org/",
     "dcterms": "http://purl.org/dc/terms/",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -488,7 +488,10 @@ TagTeam output MUST be attached as a JSON-LD named graph resource. It MUST NOT b
 {
   "@context": {
     "sc": "https://semanticore.fandaws.org/ns/",
-    "tagteam": "https://tagteam.fandaws.org/ontology/"
+    "tagteam": "http://tagteam.fandaws.com/ontology/",
+    "inst": "http://tagteam.fandaws.com/instance/",
+    "bfo": "http://purl.obolibrary.org/obo/",
+    "cco": "https://www.commoncoreontologies.org/"
   },
   "@id": "urn:semanticore:graph:example:0:0",
   "@type": "sc:TagTeamGraph",

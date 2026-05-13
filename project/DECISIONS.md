@@ -265,17 +265,18 @@
 
 ---
 
-## ADR-017: Normalize TagTeam Graph Context At The Boundary
+## ADR-017: De-Duplicate TagTeam Graph Context At The Boundary
 
 **Date:** 2026-05-13
 
-**Decision:** SemantiCore wraps TagTeam graph output with a TagTeam graph context that defines the `inst:`, `rdfs:`, and `owl:` prefixes plus unprefixed TagTeam relation terms such as `is_about` and `is_concretized_by`.
+**Decision:** SemantiCore wraps TagTeam graph output with only SemantiCore-owned terms and shared prefixes, while TagTeam's emitted context remains authoritative for TagTeam, BFO, CCO, and ontology-match term mappings.
 
-**Context:** TagTeam emits useful JSON-LD graph nodes, but some outputs use compact IDs and predicates without including the context needed to expand them. Without that context, downstream JSON-LD consumers see ghost prefixes and unmapped terms even though the graph shape is otherwise preserved.
+**Context:** TagTeam emits useful JSON-LD graph nodes and, in current browser builds, includes a context that maps terms such as `Entity`, `Process`, `Role`, `is_about`, and `is_concretized_by` to BFO/CCO IRIs. SemantiCore previously supplied local `tagteam:*` shadows for these same terms. If contexts were reordered or consolidated, those duplicate definitions could silently expand the same graph to different IRIs.
 
 **Consequences:**
-- Browser and Node graph outputs are usable as JSON-LD without requiring a separate hidden TagTeam context file.
-- If a future TagTeam runtime supplies its own `@context`, SemantiCore keeps the default graph context and layers the runtime context after it.
+- Browser and Node graph wrappers define `tagteam:`, `inst:`, `rdfs:`, `owl:`, `bfo:`, and `cco:` without redefining TagTeam-owned bare terms.
+- If a TagTeam runtime supplies its own `@context`, SemantiCore layers that runtime context after the wrapper context and avoids conflicting duplicate term definitions.
+- `tagteam:` and `inst:` are aligned to the namespaces emitted by the active TagTeam serializer.
 - The graph boundary remains an adapter concern; SemantiCore does not rewrite TagTeam nodes.
 
 ---

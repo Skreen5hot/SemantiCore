@@ -22,7 +22,7 @@ test("TagTeam runtime adapter exposes version and normalizes graph output", () =
     version: "7.0.0",
     buildGraph(sourceText) {
       return {
-        "@context": { tagteam: "https://tagteam.fandaws.org/ontology/" },
+        "@context": { tagteam: "http://tagteam.fandaws.com/ontology/" },
         "@graph": [
           {
             "@id": "urn:tagteam:test",

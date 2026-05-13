@@ -127,23 +127,64 @@ test("TagTeam graph output is represented as top-level @graph", () => {
   strictEqual("sc:jsonld" in (result.graph ?? {}), false);
 });
 
-test("TagTeam graph context maps TagTeam prefixes and relation terms", () => {
+test("TagTeam graph context keeps TagTeam mappings authoritative", () => {
   const result = enrichRecord(baseRecord(), baseConfig(), baseContextManifest(), baseOntologySet(), tagTeamContextRuntime());
   const graph = !Array.isArray(result.graph) ? result.graph : null;
-  const context = graph?.["@context"] as Record<string, unknown> | undefined;
-  deepStrictEqual(context?.inst, "urn:tagteam:instance:");
-  deepStrictEqual(context?.rdfs, "http://www.w3.org/2000/01/rdf-schema#");
-  deepStrictEqual(context?.owl, "http://www.w3.org/2002/07/owl#");
-  deepStrictEqual(context?.is_about, { "@id": "tagteam:is_about", "@type": "@id" });
-  deepStrictEqual(context?.is_concretized_by, { "@id": "tagteam:is_concretized_by", "@type": "@id" });
-  deepStrictEqual(context?.is_bearer_of, { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" });
-  deepStrictEqual(context?.realized_in, { "@id": "tagteam:realized_in", "@type": "@id" });
-  deepStrictEqual(context?.ontologyMatch, { "@id": "tagteam:ontologyMatch", "@container": "@set" });
-  deepStrictEqual(context?.ontologyMatchIRI, { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" });
-  deepStrictEqual(context?.ontologyMatchOWLType, { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" });
-  deepStrictEqual(context?.EventDescription, "tagteam:EventDescription");
-  deepStrictEqual(context?.Process, "tagteam:Process");
-  deepStrictEqual(context?.Role, "tagteam:Role");
+  const contexts = Array.isArray(graph?.["@context"]) ? graph?.["@context"] : [graph?.["@context"]];
+  const bundleContext = contexts[0] as Record<string, unknown>;
+  const tagTeamContext = contexts[1] as Record<string, unknown>;
+
+  deepStrictEqual(bundleContext.inst, "http://tagteam.fandaws.com/instance/");
+  deepStrictEqual(bundleContext.tagteam, "http://tagteam.fandaws.com/ontology/");
+  deepStrictEqual(bundleContext.rdfs, "http://www.w3.org/2000/01/rdf-schema#");
+  deepStrictEqual(bundleContext.owl, "http://www.w3.org/2002/07/owl#");
+  deepStrictEqual(bundleContext.bfo, "http://purl.obolibrary.org/obo/");
+  deepStrictEqual(bundleContext.cco, "https://www.commoncoreontologies.org/");
+
+  const delegatedTerms = [
+    "ActSpecification",
+    "Agent",
+    "DirectiveInformationContentEntity",
+    "Entity",
+    "EventDescription",
+    "InformationBearingEntity",
+    "InformationContentEntity",
+    "IntentionalAct",
+    "Obligation",
+    "Organization",
+    "Permission",
+    "Person",
+    "PlanSpecification",
+    "Process",
+    "Role",
+    "has_agent",
+    "has_input",
+    "has_output",
+    "has_text_value",
+    "inheres_in",
+    "isSpecifiedBy",
+    "is_about",
+    "is_bearer_of",
+    "is_concretized_by",
+    "is_prescribed_by",
+    "is_subject_of",
+    "ontologyMatch",
+    "ontologyMatchIRI",
+    "prescribes",
+    "realized_in",
+  ];
+  for (const term of delegatedTerms) {
+    strictEqual(Object.prototype.hasOwnProperty.call(bundleContext, term), false);
+  }
+
+  deepStrictEqual(tagTeamContext.Entity, { "@id": "bfo:BFO_0000001" });
+  deepStrictEqual(tagTeamContext.Process, { "@id": "bfo:BFO_0000015" });
+  deepStrictEqual(tagTeamContext.Role, { "@id": "bfo:BFO_0000023" });
+  deepStrictEqual(tagTeamContext.Agent, { "@id": "cco:ont00001017" });
+  deepStrictEqual(tagTeamContext.is_about, { "@id": "cco:ont00001808", "@type": "@id" });
+  deepStrictEqual(tagTeamContext.is_concretized_by, { "@id": "bfo:BFO_0000058", "@type": "@id" });
+  deepStrictEqual(tagTeamContext.ontologyMatch, { "@id": "tagteam:ontologyMatch", "@container": "@set" });
+  strictEqual(hasConflictingContextTerms(bundleContext, tagTeamContext), false);
 });
 
 test("TagTeam metadata is preserved alongside named graph output", () => {
@@ -250,6 +291,26 @@ function tagTeamContextRuntime(version = "7.0.0"): TagTeamRuntime {
     version,
     buildGraph() {
       return {
+        "@context": {
+          tagteam: "http://tagteam.fandaws.com/ontology/",
+          inst: "http://tagteam.fandaws.com/instance/",
+          bfo: "http://purl.obolibrary.org/obo/",
+          cco: "https://www.commoncoreontologies.org/",
+          xsd: "http://www.w3.org/2001/XMLSchema#",
+          Entity: { "@id": "bfo:BFO_0000001" },
+          Process: { "@id": "bfo:BFO_0000015" },
+          Role: { "@id": "bfo:BFO_0000023" },
+          Agent: { "@id": "cco:ont00001017" },
+          Person: { "@id": "cco:ont00001262" },
+          Organization: { "@id": "cco:ont00001180" },
+          is_about: { "@id": "cco:ont00001808", "@type": "@id" },
+          is_concretized_by: { "@id": "bfo:BFO_0000058", "@type": "@id" },
+          has_agent: { "@id": "cco:ont00001833", "@type": "@id" },
+          has_text_value: { "@id": "cco:ont00001765", "@type": "xsd:string" },
+          realized_in: { "@id": "bfo:BFO_0000054", "@type": "@id" },
+          ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" },
+          ontologyMatchIRI: { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" },
+        },
         "@graph": [
           {
             "@id": "inst:VP_battlefield",
@@ -305,4 +366,14 @@ function metadataRuntime(version = "7.0.0"): TagTeamRuntime {
 
 function isNode(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasConflictingContextTerms(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+  for (const key of Object.keys(left)) {
+    if (!Object.prototype.hasOwnProperty.call(right, key)) continue;
+    if (JSON.stringify(left[key]) !== JSON.stringify(right[key])) {
+      return true;
+    }
+  }
+  return false;
 }

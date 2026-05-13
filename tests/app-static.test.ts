@@ -73,17 +73,17 @@ test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
   strictEqual(js.includes("ontologyMatchCountForGraph"), true);
 });
 
-test("GitHub Pages app emits a usable TagTeam graph context", () => {
-  strictEqual(js.includes('inst: "urn:tagteam:instance:"'), true);
+test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
+  strictEqual(js.includes('tagteam: "http://tagteam.fandaws.com/ontology/"'), true);
+  strictEqual(js.includes('inst: "http://tagteam.fandaws.com/instance/"'), true);
   strictEqual(js.includes('rdfs: "http://www.w3.org/2000/01/rdf-schema#"'), true);
   strictEqual(js.includes('owl: "http://www.w3.org/2002/07/owl#"'), true);
-  strictEqual(js.includes('is_about: { "@id": "tagteam:is_about", "@type": "@id" }'), true);
-  strictEqual(js.includes('is_concretized_by: { "@id": "tagteam:is_concretized_by", "@type": "@id" }'), true);
-  strictEqual(js.includes('is_bearer_of: { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" }'), true);
-  strictEqual(js.includes('realized_in: { "@id": "tagteam:realized_in", "@type": "@id" }'), true);
-  strictEqual(js.includes('ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" }'), true);
-  strictEqual(js.includes('ontologyMatchIRI: { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" }'), true);
-  strictEqual(js.includes('ontologyMatchOWLType: { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" }'), true);
+  strictEqual(js.includes('bfo: "http://purl.obolibrary.org/obo/"'), true);
+  strictEqual(js.includes('cco: "https://www.commoncoreontologies.org/"'), true);
+  strictEqual(js.includes('is_about: { "@id": "tagteam:is_about", "@type": "@id" }'), false);
+  strictEqual(js.includes('Entity: "tagteam:Entity"'), false);
+  strictEqual(js.includes('Process: "tagteam:Process"'), false);
+  strictEqual(js.includes('ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" }'), false);
   strictEqual(js.includes("runtimeGraphContext"), true);
 });
 

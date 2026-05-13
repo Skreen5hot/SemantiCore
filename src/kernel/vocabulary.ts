@@ -1,5 +1,6 @@
 export const SC = "https://semanticore.fandaws.org/ns/";
-export const TAGTEAM = "https://tagteam.fandaws.org/ontology/";
+export const TAGTEAM = "http://tagteam.fandaws.com/ontology/";
+export const TAGTEAM_INSTANCE = "http://tagteam.fandaws.com/instance/";
 export const SC_PREFIX = "sc:";
 
 export const CORE_CONTEXT = {
@@ -19,47 +20,11 @@ export const CORE_CONTEXT = {
 
 export const TAGTEAM_GRAPH_CONTEXT = {
   ...CORE_CONTEXT,
-  inst: "urn:tagteam:instance:",
+  inst: TAGTEAM_INSTANCE,
   rdfs: "http://www.w3.org/2000/01/rdf-schema#",
   owl: "http://www.w3.org/2002/07/owl#",
-  "is_about": { "@id": "tagteam:is_about", "@type": "@id" },
-  "is_concretized_by": { "@id": "tagteam:is_concretized_by", "@type": "@id" },
-  "is_subject_of": { "@id": "tagteam:is_subject_of", "@type": "@id" },
-  "is_bearer_of": { "@id": "tagteam:is_bearer_of", "@type": "@id", "@container": "@set" },
-  "has_input": { "@id": "tagteam:has_input", "@type": "@id" },
-  "has_agent": { "@id": "tagteam:has_agent", "@type": "@id" },
-  "has_output": { "@id": "tagteam:has_output", "@type": "@id" },
-  "prescribes": { "@id": "tagteam:prescribes", "@type": "@id" },
-  "is_prescribed_by": { "@id": "tagteam:is_prescribed_by", "@type": "@id" },
-  "isSpecifiedBy": { "@id": "tagteam:isSpecifiedBy", "@type": "@id" },
-  "inheres_in": { "@id": "tagteam:inheres_in", "@type": "@id" },
-  "realized_in": { "@id": "tagteam:realized_in", "@type": "@id" },
-  "has_text_value": "tagteam:has_text_value",
-  "ontologyMatch": { "@id": "tagteam:ontologyMatch", "@container": "@set" },
-  "ontologyMatchIRI": { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" },
-  "ontologyMatchConfidence": { "@id": "tagteam:ontologyMatchConfidence", "@type": "xsd:decimal" },
-  "ontologyMatchEvidence": "tagteam:ontologyMatchEvidence",
-  "ontologyMatchLabel": "tagteam:ontologyMatchLabel",
-  "ontologyMatchType": "tagteam:ontologyMatchType",
-  "ontologyMatchForm": "tagteam:ontologyMatchForm",
-  "ontologyMatchInflection": "tagteam:ontologyMatchInflection",
-  "ontologyMatchOWLType": { "@id": "tagteam:ontologyMatchOWLType", "@type": "@id" },
-  "tagteam:classNominationStatus": { "@type": "@id" },
-  "ActSpecification": "tagteam:ActSpecification",
-  "Agent": "tagteam:Agent",
-  "DirectiveInformationContentEntity": "tagteam:DirectiveInformationContentEntity",
-  "Entity": "tagteam:Entity",
-  "EventDescription": "tagteam:EventDescription",
-  "InformationBearingEntity": "tagteam:InformationBearingEntity",
-  "InformationContentEntity": "tagteam:InformationContentEntity",
-  "IntentionalAct": "tagteam:IntentionalAct",
-  "Obligation": "tagteam:Obligation",
-  "Organization": "tagteam:Organization",
-  "Permission": "tagteam:Permission",
-  "Person": "tagteam:Person",
-  "PlanSpecification": "tagteam:PlanSpecification",
-  "Process": "tagteam:Process",
-  "Role": "tagteam:Role",
+  bfo: "http://purl.obolibrary.org/obo/",
+  cco: "https://www.commoncoreontologies.org/",
 } as const;
 
 export const KERNEL_VERSION = "1.0.0-phase1";

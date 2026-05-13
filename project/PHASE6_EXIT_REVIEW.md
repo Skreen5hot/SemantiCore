@@ -27,14 +27,15 @@ What changed:
 - Documented the canonicalization strategy and the remaining RDFC-1.0 gap in [CANONICALIZATION.md](./CANONICALIZATION.md).
 - Added an explicit TagTeam text source selector and persisted `sc:tagTeamSourcePropertyPath`.
 - Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
-- Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
+- De-duplicated SemantiCore's TagTeam graph context so TagTeam-owned terms such as `Entity`, `is_about`, and `ontologyMatch` remain defined only by TagTeam's emitted context.
+- Aligned SemantiCore's graph wrapper prefixes with TagTeam's emitted `tagteam:` and `inst:` namespaces while keeping `bfo:` and `cco:` prefix declarations available for expansion.
 - Added `sc:ontologyBridge` graph diagnostics so reviewers can see whether local ontology TTL was passed to TagTeam and how many `ontologyMatch` annotations returned.
 - Aligned ontology compilation with TagTeam's built-in default priority chain by calling `OntologyTextTagger.fromTTL(ttl)` without a redundant `propertyMap`.
 - Routed the browser workbench through the compiled `createTagTeamRuntimeAdapter` module instead of maintaining a local duplicate or scattering direct `window.TagTeam.buildGraph` calls.
 - Changed enabled ontology handling to compile each TTL document independently and merge taggers, avoiding raw Turtle string concatenation across files.
 - Preserved TagTeam `_metadata` alongside named graph output as `sc:tagTeamMetadata`.
 - Delegated `emitClauseAuthorityMatch` through the merged multi-ontology tagger proxy.
-- Extended graph context coverage for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
+- Removed local graph-context shadows for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
 
 Verification run before review:
 
@@ -74,7 +75,7 @@ Expected:
 - The enriched output no longer contains duplicate top-level `records`, `graphs`, or `warnings` aliases.
 - The Run panel exposes a TagTeam text source selector.
 - The default source path is `sc:source / schema:text`.
-- TagTeam Graphs output includes usable graph context mappings for TagTeam prefixes and relation terms.
+- TagTeam Graphs output includes a de-duplicated graph context: SemantiCore supplies wrapper prefixes and TagTeam supplies TagTeam/BFO/CCO term mappings.
 - Enriched graph output includes `sc:ontologyBridge`.
 
 Block if:
@@ -115,15 +116,15 @@ Block if:
 Expected:
 
 - Each emitted TagTeam graph has an `@context`.
-- `inst:` is defined.
-- `rdfs:` and `owl:` are defined.
-- `is_about` and `is_concretized_by` are mapped as IRI-valued properties.
-- `ontologyMatch` and `ontologyMatchIRI` are mapped.
-- `ontologyMatchOWLType`, `is_bearer_of`, and `realized_in` are mapped when TagTeam returns role/ontology-match output.
+- SemantiCore's wrapper context defines only SemantiCore-owned terms plus shared prefixes: `tagteam:`, `inst:`, `rdfs:`, `owl:`, `bfo:`, and `cco:`.
+- SemantiCore's wrapper context does not redefine TagTeam-owned bare terms such as `Entity`, `Process`, `Role`, `is_about`, `is_concretized_by`, `ontologyMatch`, or `realized_in`.
+- When TagTeam returns its own context, TagTeam remains the source of truth for BFO/CCO mappings and ontology-match term definitions.
+- `tagteam:` and `inst:` match the namespaces emitted by the active TagTeam serializer.
 
 Block if:
 
 - TagTeam graph output contains compact IDs or predicates that cannot be expanded by a JSON-LD processor.
+- SemantiCore's wrapper context maps the same term to a different IRI than TagTeam's emitted context.
 
 ### 5. Ontology Bridge Evidence
 
@@ -216,13 +217,15 @@ Commit reviewed:
 - [ ] TagTeam text source selector is visible.
 - [ ] Default source path is `sc:source / schema:text`.
 - [ ] Mapping manifest includes `sc:tagTeamSourcePropertyPath`.
-- [ ] TagTeam graph context defines `inst:`.
-- [ ] TagTeam graph context maps `is_about`.
-- [ ] TagTeam graph context maps `is_concretized_by`.
-- [ ] TagTeam graph context maps `ontologyMatch`.
-- [ ] TagTeam graph context maps `ontologyMatchOWLType`.
-- [ ] TagTeam graph context maps `is_bearer_of`.
-- [ ] TagTeam graph context maps `realized_in`.
+- [ ] SemantiCore graph wrapper context defines `tagteam:`.
+- [ ] SemantiCore graph wrapper context defines `inst:`.
+- [ ] SemantiCore graph wrapper context defines `bfo:`.
+- [ ] SemantiCore graph wrapper context defines `cco:`.
+- [ ] SemantiCore graph wrapper context does not shadow `is_about`.
+- [ ] SemantiCore graph wrapper context does not shadow `Entity`.
+- [ ] SemantiCore graph wrapper context does not shadow `ontologyMatch`.
+- [ ] TagTeam emitted graph context maps `is_about`.
+- [ ] TagTeam emitted graph context maps `ontologyMatch`.
 - [ ] Graph output includes `sc:OntologyBridgeReport`.
 - [ ] Graph output includes `sc:ontologyOptionStatus`.
 - [ ] Graph output includes `sc:ontologyMatchCount`.
