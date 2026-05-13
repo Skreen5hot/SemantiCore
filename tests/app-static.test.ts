@@ -81,12 +81,16 @@ test("GitHub Pages app emits a usable TagTeam graph context", () => {
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {
+  strictEqual(js.includes("createTagTeamRuntimeAdapter"), true);
+  strictEqual(js.includes("buildTagTeamRuntimeOptions"), true);
   strictEqual(js.includes("sc:OntologyBridgeReport"), true);
   strictEqual(js.includes("sc:ontologyOptionPassed"), true);
   strictEqual(js.includes("sc:ontologyOptionStatus"), true);
   strictEqual(js.includes("sc:ontologyMatchCount"), true);
   strictEqual(js.includes("sc:ontologyCompileMode"), true);
+  strictEqual(js.includes("sc:compiledOntologyCount"), true);
   strictEqual(js.includes("sc:TagTeamDefaultPriorityChain"), true);
+  strictEqual(js.includes('join("\\n\\n")'), false);
 });
 
 test("GitHub Pages app makes the TagTeam text source explicit", () => {

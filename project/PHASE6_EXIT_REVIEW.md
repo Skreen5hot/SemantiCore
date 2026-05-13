@@ -30,6 +30,8 @@ What changed:
 - Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
 - Added `sc:ontologyBridge` graph diagnostics so reviewers can see whether local ontology TTL was passed to TagTeam and how many `ontologyMatch` annotations returned.
 - Aligned ontology compilation with TagTeam's built-in default priority chain by calling `OntologyTextTagger.fromTTL(ttl)` without a redundant `propertyMap`.
+- Routed the browser workbench through an explicit `createTagTeamRuntimeAdapter` boundary instead of scattering direct `window.TagTeam.buildGraph` calls.
+- Changed enabled ontology handling to compile each TTL document independently and merge taggers, avoiding raw Turtle string concatenation across files.
 - Extended graph context coverage for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
 
 Verification run before review:
@@ -38,7 +40,7 @@ Verification run before review:
 - `npm.cmd run test:purity`
 - `npm.cmd run build`
 - `node --check app/main.js`
-- Browser smoke test against local `app/` server confirming graph output includes `sc:ontologyCompileMode`.
+- Browser smoke test against local `app/` server confirming graph output includes `sc:ontologyCompileMode` and `sc:compiledOntologyCount`.
 
 ## Purpose
 
@@ -129,10 +131,12 @@ Expected:
 - The report includes `sc:ontologyOptionPassed`.
 - The report includes `sc:ontologyMatchCount`.
 - The report includes `sc:ontologyCompileMode` showing that SemantiCore relies on TagTeam's default ontology priority chain.
+- The report includes `sc:compiledOntologyCount` so multi-ontology compilation is visible.
 
 Block if:
 
 - A user cannot tell whether enabled ontology content was passed to TagTeam.
+- Enabled TTL documents are concatenated before compilation instead of compiled independently.
 
 ### 6. Kernel Canonicalization
 
@@ -170,6 +174,7 @@ Do not approve Phase 6 if any of these are true:
 - TagTeam source text is selected by hidden heuristic instead of explicit source-path configuration.
 - TagTeam graph output has ghost prefixes or unmapped relation terms.
 - Ontology passing is hidden or impossible to inspect from JSON-LD output.
+- The browser app bypasses its TagTeam runtime adapter boundary.
 - Content hashes are not SHA-256 over canonical bytes.
 - The RDFC-1.0 gap is hidden or misrepresented.
 - A server, database, CDN, or cloud dependency is introduced.
@@ -213,6 +218,7 @@ Commit reviewed:
 - [ ] Graph output includes `sc:ontologyOptionStatus`.
 - [ ] Graph output includes `sc:ontologyMatchCount`.
 - [ ] Graph output includes `sc:ontologyCompileMode`.
+- [ ] Graph output includes `sc:compiledOntologyCount`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.

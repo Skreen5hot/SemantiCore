@@ -315,8 +315,8 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary, t
 }
 
 function buildRuntimeGraph(recordId, index, text, runtime) {
-  const tagTeamOptionBundle = buildTagTeamOptions();
-  const output = runtime.buildGraph(text, tagTeamOptionBundle.options);
+  const runtimeResult = runtime.buildGraph(text, tagTeamOptions(), buildOntologySet());
+  const output = runtimeResult.output;
   const nodes = extractGraphNodes(output);
   const graph = {
     "@context": runtimeGraphContext(output),
@@ -329,7 +329,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   };
   const metadata = tagTeamMetadata(output);
   if (metadata) graph["sc:tagTeamMetadata"] = metadata;
-  graph["sc:ontologyBridge"] = ontologyBridgeReport(tagTeamOptionBundle.bridge, nodes);
+  graph["sc:ontologyBridge"] = ontologyBridgeReport(runtimeResult.bridge, nodes);
   return {
     graph,
     warnings: contextCollisionWarnings(output, recordId),
@@ -443,54 +443,131 @@ function getActiveRuntime() {
     const version = typeof tagTeam.version === "string" ? tagTeam.version : "unknown";
     const ontologySupport = Boolean(tagTeam.OntologyTextTagger?.fromTTL);
     const warnings = runtimeOntologyWarnings(ontologySupport);
-    return {
-      kind: "tagteam",
-      version,
+    return createTagTeamRuntimeAdapter(tagTeam, {
       warnings,
       diagnostics: runtimeDiagnostics("tagteam", version, ontologySupport, warnings),
-      buildGraph(text, options) {
-        return tagTeam.buildGraph(text, options);
-      },
-    };
+      useOntologies: el.useOntologies.checked,
+    });
   }
 
   const warnings = runtimeOntologyWarnings(false).filter((warning) => el.useOntologies.checked);
-  return {
-    kind: "fallback",
-    version: fallbackRuntimeVersion,
+  return createFallbackRuntimeAdapter({
     warnings,
     diagnostics: runtimeDiagnostics("fallback", fallbackRuntimeVersion, false, warnings),
-    buildGraph(text) {
+    useOntologies: el.useOntologies.checked,
+  });
+}
+
+function createTagTeamRuntimeAdapter(tagTeam, adapterOptions = {}) {
+  const version = typeof tagTeam.version === "string" ? tagTeam.version : "unknown";
+  return {
+    kind: "tagteam",
+    version,
+    warnings: adapterOptions.warnings || [],
+    diagnostics: adapterOptions.diagnostics,
+    buildGraph(text, options, ontologySet) {
+      const bundle = buildTagTeamRuntimeOptions(tagTeam, options, ontologySet, adapterOptions.useOntologies !== false);
       return {
-        "@context": coreContext(),
-        "@graph": buildFallbackNodes(text),
+        output: tagTeam.buildGraph(text, bundle.options),
+        bridge: bundle.bridge,
       };
     },
   };
 }
 
-function buildTagTeamOptions() {
-  const options = {
-    ontologyThreshold: 0.2,
-    verbose: false,
+function createFallbackRuntimeAdapter(adapterOptions = {}) {
+  return {
+    kind: "fallback",
+    version: fallbackRuntimeVersion,
+    warnings: adapterOptions.warnings || [],
+    diagnostics: adapterOptions.diagnostics,
+    buildGraph(text, _options, ontologySet) {
+      const bridge = ontologyBridgeBase(ontologySet);
+      bridge.status = adapterOptions.useOntologies === false ? "sc:OntologyDisabled" : "sc:OntologyApiUnavailable";
+      return {
+        output: {
+          "@context": coreContext(),
+          "@graph": buildFallbackNodes(text),
+        },
+        bridge,
+      };
+    },
   };
-  const bridge = {
-    status: "sc:OntologyDisabled",
-    optionPassed: false,
-    enabledOntologyCount: buildOntologySet().ontologies.filter((ontology) => ontology["sc:enabled"]).length,
-    ontologyContentBytes: 0,
+}
+
+function tagTeamOptions() {
+  return {
+    "@type": "sc:TagTeamOptions",
+    "sc:ontologyThreshold": 0.2,
+    "sc:verbose": false,
   };
-  const tagTeam = window.TagTeam;
-  if (!el.useOntologies.checked) return { options, bridge };
+}
+
+function buildTagTeamRuntimeOptions(tagTeam, semanticOptions, ontologySet, useOntologies) {
+  const options = concreteTagTeamOptions(semanticOptions);
+  const bridge = ontologyBridgeBase(ontologySet);
+  if (!useOntologies) return { options, bridge };
   bridge.status = "sc:OntologyApiUnavailable";
   if (!tagTeam?.OntologyTextTagger?.fromTTL) return { options, bridge };
-  const ttl = enabledOntologyContent().join("\n\n");
-  bridge.ontologyContentBytes = utf8Bytes(ttl).length;
-  bridge.status = ttl.trim() ? "sc:OntologyCompiledAndPassed" : "sc:NoEnabledOntologyContent";
-  if (!ttl.trim()) return { options, bridge };
-  options.ontology = tagTeam.OntologyTextTagger.fromTTL(ttl);
+  const ttlDocuments = enabledOntologyContents(ontologySet);
+  bridge.ontologyContentBytes = ttlDocuments.reduce((total, ttl) => total + utf8Bytes(ttl).length, 0);
+  bridge.compiledOntologyCount = ttlDocuments.length;
+  bridge.status = ttlDocuments.length > 0 ? "sc:OntologyCompiledAndPassed" : "sc:NoEnabledOntologyContent";
+  if (ttlDocuments.length === 0) return { options, bridge };
+  options.ontology = compileOntologyTaggers(tagTeam, ttlDocuments);
   bridge.optionPassed = true;
   return { options, bridge };
+}
+
+function concreteTagTeamOptions(semanticOptions) {
+  const options = {
+    ontologyThreshold: semanticOptions?.["sc:ontologyThreshold"] ?? semanticOptions?.ontologyThreshold ?? 0.2,
+    verbose: semanticOptions?.["sc:verbose"] ?? semanticOptions?.verbose ?? false,
+  };
+  ["context", "extractEntities", "extractActs", "detectRoles", "useLegacy"].forEach((key) => {
+    if (semanticOptions && Object.prototype.hasOwnProperty.call(semanticOptions, key)) {
+      options[key] = semanticOptions[key];
+    }
+  });
+  return options;
+}
+
+function ontologyBridgeBase(ontologySet) {
+  const enabled = enabledOntologies(ontologySet);
+  return {
+    status: "sc:OntologyDisabled",
+    optionPassed: false,
+    enabledOntologyCount: enabled.length,
+    compiledOntologyCount: 0,
+    ontologyContentBytes: 0,
+  };
+}
+
+function compileOntologyTaggers(tagTeam, ttlDocuments) {
+  const taggers = ttlDocuments.map((ttl) => tagTeam.OntologyTextTagger.fromTTL(ttl));
+  if (taggers.length === 1) return taggers[0];
+  return mergeOntologyTaggers(taggers);
+}
+
+function mergeOntologyTaggers(taggers) {
+  return {
+    tagText(...args) {
+      return taggers.flatMap((tagger) => {
+        if (!tagger || typeof tagger.tagText !== "function") return [];
+        const result = tagger.tagText(...args);
+        return Array.isArray(result) ? result : result ? [result] : [];
+      });
+    },
+    getStats() {
+      return taggers.reduce((summary, tagger) => {
+        const stats = tagger && typeof tagger.getStats === "function" ? tagger.getStats() : {};
+        Object.entries(stats || {}).forEach(([key, value]) => {
+          if (typeof value === "number") summary[key] = (summary[key] || 0) + value;
+        });
+        return summary;
+      }, { taggerCount: taggers.length });
+    },
+  };
 }
 
 function ontologyBridgeReport(bridge, nodes) {
@@ -501,6 +578,7 @@ function ontologyBridgeReport(bridge, nodes) {
     "sc:ontologyOptionKey": "ontology",
     "sc:ontologyCompileMode": { "@id": "sc:TagTeamDefaultPriorityChain" },
     "sc:enabledOntologyCount": Number(bridge.enabledOntologyCount || 0),
+    "sc:compiledOntologyCount": Number(bridge.compiledOntologyCount || 0),
     "sc:ontologyContentBytes": Number(bridge.ontologyContentBytes || 0),
     "sc:ontologyMatchCount": countOntologyMatches(nodes),
   };
@@ -514,11 +592,16 @@ function countOntologyMatches(nodes) {
   }, 0);
 }
 
-function enabledOntologyContent() {
-  const ontologySet = buildOntologySet();
-  return ontologySet.ontologies
+function enabledOntologyContents(ontologySet) {
+  return enabledOntologies(ontologySet)
+    .map((ontology) => ontology["sc:content"])
+    .filter((content) => typeof content === "string" && content.trim().length > 0);
+}
+
+function enabledOntologies(ontologySet) {
+  return (ontologySet?.["sc:ontologies"] || ontologySet?.ontologies || [])
     .filter((ontology) => ontology["sc:enabled"] && typeof ontology["sc:content"] === "string")
-    .map((ontology) => ontology["sc:content"]);
+    .filter((ontology) => ontology["sc:content"].trim().length > 0);
 }
 
 function runtimeOntologyWarnings(ontologySupport) {
