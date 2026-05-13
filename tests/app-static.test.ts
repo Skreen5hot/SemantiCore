@@ -25,16 +25,25 @@ function test(name: string, fn: () => void): void {
   }
 }
 
-test("GitHub Pages app exposes visible Phase 3 workflow controls", () => {
+test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Load Sample CSV"), true);
   strictEqual(html.includes("Run Enrichment"), true);
   strictEqual(html.includes("Mapping manifest JSON-LD"), true);
   strictEqual(html.includes("CSV Summary"), true);
 });
 
-test("GitHub Pages app advertises Phase 3 status", () => {
-  strictEqual(html.includes("Phase 3 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 3"'), true);
+test("GitHub Pages app advertises Phase 4 status", () => {
+  strictEqual(html.includes("Phase 4 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 4"'), true);
+});
+
+test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
+  strictEqual(html.includes("Save Session"), true);
+  strictEqual(html.includes("Restore Session"), true);
+  strictEqual(html.includes("Session JSON-LD"), true);
+  strictEqual(html.includes("Ontology set JSON-LD"), true);
+  strictEqual(html.includes("Context manifest JSON-LD"), true);
+  strictEqual(js.includes("indexedDB.open"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

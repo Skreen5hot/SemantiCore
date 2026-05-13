@@ -168,6 +168,38 @@
 
 ---
 
+## ADR-011: Approve Phase 3 and Begin Phase 4
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 3 is approved. Begin Phase 4: local state, sessions, and ontology management.
+
+**Context:** The PO reviewed the visible GitHub Pages workbench MVP and approved it. SemantiCore now has a click-through browser workflow for sample/local input, mapping, enrichment, JSON-LD graph inspection, and export.
+
+**Consequences:**
+- Phase 3 is marked complete.
+- Phase 4 is marked in progress.
+- Persistence/session/ontology work must be visible in the app, not only represented by files.
+- IndexedDB remains an optional browser adapter, not a core kernel dependency.
+
+---
+
+## ADR-012: Use IndexedDB for Browser-Local Sessions
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 4 uses browser IndexedDB as the local session persistence adapter and exposes session, ontology, and context state as JSON-LD in the workbench.
+
+**Context:** SemantiCore needs resumable local work without introducing a required server, database service, account, or cloud sync. IndexedDB is available in modern browsers and fits the edge-canonical browser execution model when treated as an adapter.
+
+**Consequences:**
+- Session save/restore is visible in the GitHub Pages workbench.
+- Session snapshots include local source, mapping, dataset, run, ontology set, and context manifest state.
+- IndexedDB remains outside the kernel.
+- Cross-device sync and remote state remain out of scope.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

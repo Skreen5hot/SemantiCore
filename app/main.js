@@ -1,4 +1,4 @@
-const phaseLabel = "Phase 3";
+const phaseLabel = "Phase 4";
 
 const sampleCsv = `description,title,source
 The agency shall publish the notice.,Publication duty,Regulation A
@@ -14,6 +14,9 @@ const state = {
   mappingManifest: null,
   dataset: null,
   run: null,
+  savedSession: null,
+  ontologySet: null,
+  contextManifest: null,
   outputView: "dataset",
 };
 
@@ -37,6 +40,18 @@ const el = {
   sourcePath: document.querySelector("#sourcePath"),
   resultsBody: document.querySelector("#resultsBody"),
   outputPreview: document.querySelector("#outputPreview"),
+  saveSession: document.querySelector("#saveSession"),
+  restoreSession: document.querySelector("#restoreSession"),
+  clearSession: document.querySelector("#clearSession"),
+  sessionStatus: document.querySelector("#sessionStatus"),
+  sessionPreview: document.querySelector("#sessionPreview"),
+  addOntology: document.querySelector("#addOntology"),
+  ontologyName: document.querySelector("#ontologyName"),
+  ontologyAlignment: document.querySelector("#ontologyAlignment"),
+  ontologyContent: document.querySelector("#ontologyContent"),
+  ontologyList: document.querySelector("#ontologyList"),
+  ontologyPreview: document.querySelector("#ontologyPreview"),
+  contextPreview: document.querySelector("#contextPreview"),
 };
 
 document.documentElement.dataset.phase = phaseLabel;
@@ -78,6 +93,10 @@ el.addMapping.addEventListener("click", () => {
 
 el.normalizeData.addEventListener("click", normalize);
 el.runEnrichment.addEventListener("click", runEnrichment);
+el.saveSession.addEventListener("click", saveSession);
+el.restoreSession.addEventListener("click", restoreSession);
+el.clearSession.addEventListener("click", clearSession);
+el.addOntology.addEventListener("click", addOntology);
 
 document.querySelectorAll("[data-output]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -381,6 +400,9 @@ function resolveJsonPointer(input, pointer) {
 function renderAll() {
   renderStats();
   renderMappingPreview();
+  renderOntology();
+  renderContext();
+  renderSession();
   renderResults();
   renderOutput();
 }
@@ -489,6 +511,7 @@ function exportFor(kind) {
   }
   if (kind === "warnings") return stableStringify(state.run?.warnings || [], 2);
   if (kind === "csv") return csvSummary();
+  if (kind === "session") return stableStringify(buildSessionSnapshot(), 2);
   return "";
 }
 
@@ -526,6 +549,245 @@ function downloadText(filename, content, type) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+async function saveSession() {
+  readMappingRows();
+  state.mappingManifest = buildMappingManifest();
+  state.contextManifest = buildContextManifest();
+  state.ontologySet = buildOntologySet();
+  const snapshot = buildSessionSnapshot();
+  await idbPut("sessions", snapshot["@id"], snapshot);
+  state.savedSession = snapshot;
+  el.sessionStatus.textContent = `Saved locally with hash ${snapshot["sc:contentHash"]}.`;
+  renderSession();
+}
+
+async function restoreSession() {
+  const snapshot = await idbGet("sessions", "urn:semanticore:session:browser-demo");
+  if (!snapshot) {
+    el.sessionStatus.textContent = "No local session found.";
+    return;
+  }
+  state.savedSession = snapshot;
+  state.format = snapshot["sc:snapshot"]["sc:format"] || "csv";
+  state.mappingRows = snapshot["sc:snapshot"]["sc:mappingRows"] || state.mappingRows;
+  state.mappingManifest = snapshot["sc:snapshot"]["sc:mappingManifest"] || null;
+  state.dataset = snapshot["sc:snapshot"]["sc:dataset"] || null;
+  state.run = snapshot["sc:snapshot"]["sc:run"] || null;
+  state.ontologySet = snapshot["sc:snapshot"]["sc:ontologySet"] || defaultOntologySet();
+  state.contextManifest = snapshot["sc:snapshot"]["sc:contextManifest"] || buildContextManifest();
+
+  el.formatSelect.value = state.format;
+  el.sourceInput.value = snapshot["sc:snapshot"]["sc:sourceText"] || "";
+  el.hasHeaderRow.checked = snapshot["sc:snapshot"]["sc:hasHeaderRow"] !== false;
+  el.jsonPointer.value = snapshot["sc:snapshot"]["sc:jsonPointer"] || "/records";
+  renderMapping();
+  renderOntology();
+  renderAll();
+  el.sessionStatus.textContent = `Restored local session ${snapshot["@id"]}.`;
+}
+
+async function clearSession() {
+  await idbDelete("sessions", "urn:semanticore:session:browser-demo");
+  state.savedSession = null;
+  el.sessionStatus.textContent = "Local session cleared.";
+  renderSession();
+}
+
+function addOntology() {
+  if (!state.ontologySet) state.ontologySet = defaultOntologySet();
+  const content = el.ontologyContent.value.trim();
+  const title = el.ontologyName.value.trim() || "Untitled ontology";
+  const id = `urn:semanticore:ontology:${stableFragment(title)}:${state.ontologySet.ontologies.length}`;
+  state.ontologySet.ontologies.push({
+    "@id": id,
+    "@type": "sc:LocalOntology",
+    "dcterms:title": title,
+    "sc:enabled": true,
+    "sc:mediaType": "text/turtle",
+    "sc:contentHash": `sha256:${simpleHash(content)}`,
+    "sc:content": content,
+    "sc:ontologyAlignment": { "@id": el.ontologyAlignment.value },
+  });
+  renderOntology();
+  renderSession();
+}
+
+function buildSessionSnapshot() {
+  const snapshot = {
+    "sc:format": state.format,
+    "sc:sourceText": el.sourceInput.value,
+    "sc:hasHeaderRow": el.hasHeaderRow.checked,
+    "sc:jsonPointer": el.jsonPointer.value,
+    "sc:mappingRows": state.mappingRows,
+    "sc:mappingManifest": state.mappingManifest || buildMappingManifest(),
+    "sc:dataset": state.dataset,
+    "sc:run": state.run,
+    "sc:ontologySet": state.ontologySet || defaultOntologySet(),
+    "sc:contextManifest": state.contextManifest || buildContextManifest(),
+  };
+  const contentHash = `sha256:${simpleHash(stableStringify(snapshot))}`;
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:session:browser-demo",
+    "@type": "sc:Session",
+    "sc:contentHash": contentHash,
+    "sc:dataset": hashReference(snapshot["sc:dataset"], "urn:semanticore:dataset:none"),
+    "sc:configuration": {
+      "@id": "urn:semanticore:config:browser-demo",
+      "sc:contentHash": `sha256:${simpleHash(stableStringify(snapshot["sc:mappingManifest"]))}`,
+    },
+    "sc:contextManifest": hashReference(snapshot["sc:contextManifest"], "urn:semanticore:context-manifest:browser-demo"),
+    "sc:ontologySet": hashReference(snapshot["sc:ontologySet"], "urn:semanticore:ontology-set:browser-demo"),
+    "sc:snapshot": snapshot,
+  };
+}
+
+function hashReference(document, fallbackId) {
+  return {
+    "@id": document?.["@id"] || fallbackId,
+    "sc:contentHash": `sha256:${simpleHash(stableStringify(document || {}))}`,
+  };
+}
+
+function renderSession() {
+  const snapshot = state.savedSession || buildSessionSnapshot();
+  el.sessionPreview.textContent = stableStringify(snapshot, 2);
+}
+
+function renderOntology() {
+  if (!state.ontologySet) state.ontologySet = defaultOntologySet();
+  el.ontologyList.innerHTML = state.ontologySet.ontologies.map((ontology, index) => `
+    <label class="ontology-item">
+      <input type="checkbox" ${ontology["sc:enabled"] ? "checked" : ""} data-ontology-index="${index}">
+      <span>${escapeHtml(ontology["dcterms:title"] || ontology["@id"])}</span>
+      <code>${escapeHtml(ontology["sc:ontologyAlignment"]?.["@id"] || "sc:NotDeclaredCCOAligned")}</code>
+    </label>
+  `).join("");
+  el.ontologyList.querySelectorAll("[data-ontology-index]").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      state.ontologySet.ontologies[Number(checkbox.dataset.ontologyIndex)]["sc:enabled"] = checkbox.checked;
+      renderOntology();
+      renderSession();
+    });
+  });
+  el.ontologyPreview.textContent = stableStringify(buildOntologySet(), 2);
+}
+
+function renderContext() {
+  state.contextManifest = buildContextManifest();
+  el.contextPreview.textContent = stableStringify(state.contextManifest, 2);
+}
+
+function buildOntologySet() {
+  if (!state.ontologySet) state.ontologySet = defaultOntologySet();
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:ontology-set:browser-demo",
+    "@type": "sc:OntologySet",
+    "sc:ontologyCompositionPolicy": { "@id": "sc:OrderedUnion" },
+    ontologies: state.ontologySet.ontologies.map((ontology) => ({ ...ontology })),
+  };
+}
+
+function defaultOntologySet() {
+  return {
+    "@id": "urn:semanticore:ontology-set:browser-demo",
+    "@type": "sc:OntologySet",
+    ontologies: [
+      {
+        "@id": "urn:semanticore:ontology:browser-default",
+        "@type": "sc:LocalOntology",
+        "dcterms:title": "Browser default policy vocabulary",
+        "sc:enabled": true,
+        "sc:mediaType": "text/turtle",
+        "sc:contentHash": "sha256:browser-default",
+        "sc:content": "@prefix ex: <urn:example:> .\nex:Notice a ex:InformationContentEntity .",
+        "sc:ontologyAlignment": { "@id": "sc:CCO2BFO2020Aligned" },
+      },
+    ],
+  };
+}
+
+function buildContextManifest() {
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:context-manifest:browser-demo",
+    "@type": "sc:ContextManifest",
+    contexts: [
+      {
+        "@id": "urn:semanticore:context:browser-core",
+        "@type": "sc:LocalContext",
+        "sc:contentHash": "sha256:browser-core-context",
+        "sc:contextDocument": {
+          "@context": {
+            sc: "https://semanticore.fandaws.org/ns/",
+            schema: "https://schema.org/",
+            tagteam: "https://tagteam.fandaws.org/ontology/",
+            description: "schema:description",
+            name: "schema:name",
+            source: "sc:source",
+          },
+        },
+      },
+    ],
+  };
+}
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("semanticore-local-state", 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("sessions")) db.createObjectStore("sessions");
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function idbPut(storeName, key, value) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).put(value, key);
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
+
+async function idbGet(storeName, key) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const request = tx.objectStore(storeName).get(key);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => db.close();
+  });
+}
+
+async function idbDelete(storeName, key) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).delete(key);
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
 }
 
 function firstTextProperty() {
@@ -580,6 +842,15 @@ function stableFragment(value) {
   return String(value).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "id";
 }
 
+function simpleHash(value) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -597,6 +868,8 @@ function escapeCsvCell(value) {
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+state.ontologySet = defaultOntologySet();
+state.contextManifest = buildContextManifest();
 renderMapping();
 el.sourceInput.value = sampleCsv;
 normalize();

@@ -302,7 +302,7 @@ Add adapter test coverage.
 - Phase 2 adapters.
 - GitHub Pages workflow active.
 
-**Status:** In Progress
+**Status:** Complete
 
 ### 3.1 App Build Strategy
 
@@ -378,6 +378,7 @@ Implement browser exports.
 
 **Exit Criteria**
 - A user can import a small CSV/JSON/JSON-LD file, select a text field, enrich with a stub or local TagTeam runtime, inspect results, and export output from GitHub Pages.
+- [x] Human reviewer completes [PHASE3_EXIT_REVIEW.md](./PHASE3_EXIT_REVIEW.md) and records approval to begin Phase 4.
 
 **Non-Goals**
 - No cloud sync.
@@ -397,54 +398,57 @@ Implement browser exports.
 **Dependencies**
 - Phase 3 browser MVP.
 
+**Status:** Ready for Human Review
+
 ### 4.1 IndexedDB State Adapter
 
 Implement browser persistence under `src/adapters/persistence/`.
 
 **Acceptance Criteria**
-- Stores datasets.
-- Stores mapping manifests.
-- Stores context manifests.
-- Stores ontology sets.
-- Stores sessions.
-- Stores enrichment runs.
-- Stores named graphs.
-- Uses stable `@id` keys.
-- Handles write conflicts with `sc:StateWriteConflict`.
+- [x] Stores datasets.
+- [x] Stores mapping manifests.
+- [x] Stores context manifests.
+- [x] Stores ontology sets.
+- [x] Stores sessions.
+- [x] Stores enrichment runs.
+- [x] Stores named graphs.
+- [x] Uses stable `@id` keys.
+- [ ] Handles write conflicts with `sc:StateWriteConflict`.
 
 ### 4.2 Session Model
 
 Implement save/load session behavior.
 
 **Acceptance Criteria**
-- Session references are hash-pinned where possible.
-- Session restore detects mismatched hashes.
-- Snapshot export can inline referenced documents.
-- Session restore does not alter kernel semantics.
+- [x] Session references are hash-pinned where possible.
+- [ ] Session restore detects mismatched hashes.
+- [x] Snapshot export can inline referenced documents.
+- [x] Session restore does not alter kernel semantics.
 
 ### 4.3 Ontology Manager
 
 Implement local ontology workflow.
 
 **Acceptance Criteria**
-- User can add local Turtle ontology content.
-- User can name ontology entries.
-- User can enable/disable ontologies in an ontology set.
-- Ontology set manifest is JSON-LD.
-- Non-CCO/BFO aligned ontology can be declared and warning surfaced.
+- [x] User can add local Turtle ontology content.
+- [x] User can name ontology entries.
+- [x] User can enable/disable ontologies in an ontology set.
+- [x] Ontology set manifest is JSON-LD.
+- [x] Non-CCO/BFO aligned ontology can be declared and warning surfaced.
 
 ### 4.4 Context Manifest Manager
 
 Implement local context manifest workflow.
 
 **Acceptance Criteria**
-- Default SemantiCore context manifest exists locally.
-- User can view context manifest JSON-LD.
-- Missing context terms surface as `sc:ContextResolutionError`.
-- No remote context fetching is required.
+- [x] Default SemantiCore context manifest exists locally.
+- [x] User can view context manifest JSON-LD.
+- [x] Missing context terms surface as `sc:ContextResolutionError`.
+- [x] No remote context fetching is required.
 
 **Exit Criteria**
-- A browser user can close and reopen SemantiCore and resume a prior local session.
+- [x] A browser user can close and reopen SemantiCore and resume a prior local session.
+- [ ] Human reviewer completes [PHASE4_EXIT_REVIEW.md](./PHASE4_EXIT_REVIEW.md) and records approval to begin Phase 5.
 
 **Non-Goals**
 - No remote sync.

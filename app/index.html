@@ -14,25 +14,25 @@
     </div>
     <nav class="toplinks" aria-label="Project links">
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE3_EXIT_REVIEW.md">Phase 3 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE4_EXIT_REVIEW.md">Phase 4 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 3 in progress</p>
-        <h2>Import data, map fields, enrich locally, inspect JSON-LD.</h2>
+        <p class="stage">Phase 4 in progress</p>
+        <h2>Import, enrich, save, restore, and manage local semantics.</h2>
         <p>
-          This browser MVP runs a local sample workflow with deterministic stub TagTeam output. It does not upload data or require a server.
+          This browser workbench keeps sessions, ontology sets, and context manifests local to your browser. It does not upload data or require a server.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Visible workbench MVP</strong>
+          <strong>Local state and sessions</strong>
         </div>
-        <p>Phase 1 kernel and Phase 2 adapters now have a click-through review surface.</p>
+        <p>Save the current workbench, reload, restore it, and inspect the session JSON-LD.</p>
       </div>
     </section>
 
@@ -116,6 +116,71 @@
         <p class="path-display">
           Source path: <code id="sourcePath">sc:source / schema:description</code>
         </p>
+      </section>
+    </section>
+
+    <section class="state-grid" aria-label="Local state and manifests">
+      <section class="panel session-panel" aria-labelledby="session-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">4</p>
+            <h2 id="session-title">Session</h2>
+          </div>
+          <div class="button-group">
+            <button id="saveSession" type="button">Save Session</button>
+            <button id="restoreSession" type="button">Restore Session</button>
+            <button id="clearSession" type="button">Clear</button>
+          </div>
+        </div>
+        <p id="sessionStatus" class="muted">No saved session loaded yet.</p>
+        <div class="button-group">
+          <button type="button" data-download="session">Download Session Snapshot</button>
+        </div>
+        <details open>
+          <summary>Session JSON-LD</summary>
+          <pre id="sessionPreview"></pre>
+        </details>
+      </section>
+
+      <section class="panel ontology-panel" aria-labelledby="ontology-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">5</p>
+            <h2 id="ontology-title">Ontologies</h2>
+          </div>
+          <button id="addOntology" type="button">Add Ontology</button>
+        </div>
+        <div class="field-row">
+          <label for="ontologyName">Name</label>
+          <input id="ontologyName" type="text" value="Local policy terms">
+          <label for="ontologyAlignment">Alignment</label>
+          <select id="ontologyAlignment">
+            <option value="sc:CCO2BFO2020Aligned">CCO/BFO aligned</option>
+            <option value="sc:NotDeclaredCCOAligned">Not declared</option>
+          </select>
+        </div>
+        <label for="ontologyContent">Ontology content</label>
+        <textarea id="ontologyContent" spellcheck="false">@prefix ex: &lt;urn:example:&gt; .
+ex:Notice a ex:InformationContentEntity .</textarea>
+        <div id="ontologyList" class="ontology-list" aria-label="Local ontology entries"></div>
+        <details>
+          <summary>Ontology set JSON-LD</summary>
+          <pre id="ontologyPreview"></pre>
+        </details>
+      </section>
+
+      <section class="panel context-panel" aria-labelledby="context-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">6</p>
+            <h2 id="context-title">Context</h2>
+          </div>
+        </div>
+        <p class="muted">The default local context manifest is bundled into the page; no remote context fetch is required.</p>
+        <details open>
+          <summary>Context manifest JSON-LD</summary>
+          <pre id="contextPreview"></pre>
+        </details>
       </section>
     </section>
 
