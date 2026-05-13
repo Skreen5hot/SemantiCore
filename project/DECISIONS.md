@@ -249,6 +249,22 @@
 
 ---
 
+## ADR-016: Make The TagTeam Text Source Explicit
+
+**Date:** 2026-05-13
+
+**Decision:** The browser workbench must store and display the configured TagTeam source property path as `sc:tagTeamSourcePropertyPath`, defaulting to `sc:source / schema:text`.
+
+**Context:** The app previously inferred the text sent to TagTeam from mapping order and a hidden preference for description-like properties. That made review confusing and encoded the wrong semantics for tweet/post/body-style text, where `schema:text` is the canonical mapped property and `schema:description` is not the intended source.
+
+**Consequences:**
+- Mapping rows still describe how input columns become JSON-LD properties.
+- The TagTeam text source is a separate explicit configuration choice.
+- CSV files with `Text`, `url`, `id`, and `createdAt` columns can map `Text -> schema:text` and select `schema:text` as the TagTeam input.
+- Session snapshots preserve the selected TagTeam source property.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

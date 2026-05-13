@@ -66,6 +66,15 @@ test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
   strictEqual(js.includes("renderSelectedGraph"), true);
 });
 
+test("GitHub Pages app makes the TagTeam text source explicit", () => {
+  strictEqual(html.includes("TagTeam text source"), true);
+  strictEqual(html.includes("sc:source / schema:text"), true);
+  strictEqual(js.includes("sc:tagTeamSourcePropertyPath"), true);
+  strictEqual(js.includes('sourceColumn: "Text", targetProperty: "schema:text"'), true);
+  strictEqual(js.includes("selectedTagTeamSourceProperty"), true);
+  strictEqual(js.includes("firstTextProperty"), false);
+});
+
 test("GitHub Pages app exposes visible Phase 6 canonical hash output", () => {
   strictEqual(html.includes("Hashes"), true);
   strictEqual(js.includes("sc:CanonicalHashReport"), true);

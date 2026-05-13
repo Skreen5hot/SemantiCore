@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase6-graph">
+  <link rel="stylesheet" href="./styles.css?v=phase6-source">
 </head>
 <body>
   <header class="topbar">
@@ -113,8 +113,12 @@
           <div><dt>Graphs</dt><dd id="graphCount">0</dd></div>
         </dl>
 
+        <div class="field-row">
+          <label for="tagTeamSourceSelect">TagTeam text source</label>
+          <select id="tagTeamSourceSelect"></select>
+        </div>
         <p class="path-display">
-          Source path: <code id="sourcePath">sc:source / schema:description</code>
+          Source path: <code id="sourcePath">sc:source / schema:text</code>
         </p>
       </section>
     </section>
@@ -271,6 +275,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase6-graph" type="module"></script>
+  <script src="./main.js?v=phase6-source" type="module"></script>
 </body>
 </html>

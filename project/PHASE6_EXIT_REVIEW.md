@@ -25,6 +25,8 @@ What changed:
 - Added a visible Hashes output tab to the browser workbench.
 - Updated browser session, ontology, context, and hash report metadata to use SHA-256 content hashes.
 - Documented the canonicalization strategy and the remaining RDFC-1.0 gap in [CANONICALIZATION.md](./CANONICALIZATION.md).
+- Added an explicit TagTeam text source selector and persisted `sc:tagTeamSourcePropertyPath`.
+- Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
 
 Verification run before review:
 
@@ -60,6 +62,8 @@ Expected:
 - A Hashes output tab is visible.
 - Running sample enrichment still works.
 - The enriched output no longer contains duplicate top-level `records`, `graphs`, or `warnings` aliases.
+- The Run panel exposes a TagTeam text source selector.
+- The default source path is `sc:source / schema:text`.
 
 Block if:
 
@@ -80,7 +84,21 @@ Block if:
 - Hashes are short demo hashes while labeled `sha256`.
 - Hash report is not inspectable.
 
-### 3. Kernel Canonicalization
+### 3. Explicit TagTeam Source Path
+
+Expected:
+
+- The mapping manifest includes `sc:tagTeamSourcePropertyPath`.
+- The default sample maps `Text -> schema:text`.
+- The TagTeam source selector shows `Text -> schema:text`.
+- The enrichment record reports `sc:sourcePropertyPath` as `sc:source / schema:text`.
+
+Block if:
+
+- TagTeam input is chosen by a hidden first-column or description heuristic.
+- The app defaults the TagTeam source text to `schema:description`.
+
+### 4. Kernel Canonicalization
 
 Expected:
 
@@ -94,7 +112,7 @@ Block if:
 - Hashing imports filesystem, network, time, randomness, or environment state.
 - Canonicalization mutates caller input.
 
-### 4. Documented RDFC Gap
+### 5. Documented RDFC Gap
 
 Expected:
 
@@ -113,6 +131,7 @@ Do not approve Phase 6 if any of these are true:
 - Tests fail.
 - Kernel purity fails.
 - Browser output still includes duplicate top-level convenience aliases.
+- TagTeam source text is selected by hidden heuristic instead of explicit source-path configuration.
 - Content hashes are not SHA-256 over canonical bytes.
 - The RDFC-1.0 gap is hidden or misrepresented.
 - A server, database, CDN, or cloud dependency is introduced.
@@ -142,6 +161,9 @@ Commit reviewed:
 - [ ] Page shows Phase 6.
 - [ ] Hashes tab is visible.
 - [ ] Hashes tab shows `sc:CanonicalHashReport`.
+- [ ] TagTeam text source selector is visible.
+- [ ] Default source path is `sc:source / schema:text`.
+- [ ] Mapping manifest includes `sc:tagTeamSourcePropertyPath`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.

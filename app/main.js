@@ -1,7 +1,7 @@
 const phaseLabel = "Phase 6";
 const fallbackRuntimeVersion = "7.0.0";
 
-const sampleCsv = `description,title,source
+const sampleCsv = `Text,title,source
 The agency shall publish the notice.,Publication duty,Regulation A
 The committee may review the proposal.,Review authority,Policy B
 The officer must record the decision.,Recordkeeping duty,Procedure C`;
@@ -9,9 +9,10 @@ The officer must record the decision.,Recordkeeping duty,Procedure C`;
 const state = {
   format: "csv",
   mappingRows: [
-    { sourceColumn: "description", targetProperty: "schema:description" },
+    { sourceColumn: "Text", targetProperty: "schema:text" },
     { sourceColumn: "title", targetProperty: "schema:name" },
   ],
+  tagTeamSourceProperty: "schema:text",
   mappingManifest: null,
   dataset: null,
   run: null,
@@ -44,6 +45,7 @@ const el = {
   warningCount: document.querySelector("#warningCount"),
   graphCount: document.querySelector("#graphCount"),
   sourcePath: document.querySelector("#sourcePath"),
+  tagTeamSourceSelect: document.querySelector("#tagTeamSourceSelect"),
   resultsBody: document.querySelector("#resultsBody"),
   outputPreview: document.querySelector("#outputPreview"),
   graphFocusSummary: document.querySelector("#graphFocusSummary"),
@@ -77,6 +79,8 @@ el.loadSample.addEventListener("click", () => {
   state.format = "csv";
   el.sourceInput.value = sampleCsv;
   el.hasHeaderRow.checked = true;
+  state.mappingRows = inferCsvMappings(sampleCsv);
+  state.tagTeamSourceProperty = "schema:text";
   el.inputStatus.textContent = "Sample CSV loaded locally.";
   renderMapping();
   normalize();
@@ -92,6 +96,14 @@ el.fileInput.addEventListener("change", async () => {
   if (lowerName.endsWith(".json")) el.formatSelect.value = "json";
   if (lowerName.endsWith(".jsonld")) el.formatSelect.value = "jsonld";
   state.format = el.formatSelect.value;
+  if (state.format === "csv" && el.hasHeaderRow.checked) {
+    const inferred = inferCsvMappings(text);
+    if (inferred.length > 0) {
+      state.mappingRows = inferred;
+      state.tagTeamSourceProperty = preferredTagTeamSourceProperty(tagTeamSourceOptions());
+      renderMapping();
+    }
+  }
   el.inputStatus.textContent = `${file.name} loaded locally.`;
   normalize();
 });
@@ -103,7 +115,7 @@ el.formatSelect.addEventListener("change", () => {
 
 el.addMapping.addEventListener("click", () => {
   readMappingRows();
-  state.mappingRows.push({ sourceColumn: "", targetProperty: "schema:description" });
+  state.mappingRows.push({ sourceColumn: "", targetProperty: "schema:text" });
   renderMapping();
 });
 
@@ -127,6 +139,12 @@ el.requiredVersion.addEventListener("input", () => {
 el.versionPolicy.addEventListener("change", () => {
   state.versionPolicy = el.versionPolicy.value;
   refreshRuntimeStatus("Version policy updated.");
+});
+el.tagTeamSourceSelect.addEventListener("change", () => {
+  state.tagTeamSourceProperty = el.tagTeamSourceSelect.value;
+  renderSourcePath();
+  renderMappingPreview();
+  renderSession();
 });
 el.useOntologies.addEventListener("change", () => {
   refreshRuntimeStatus("Ontology option updated.");
@@ -220,7 +238,7 @@ function runEnrichment() {
 
 function enrichRecord(record, index, runtime, versionDecision) {
   const warnings = [];
-  const sourceProperty = firstTextProperty();
+  const sourceProperty = selectedTagTeamSourceProperty();
   const source = record["sc:source"] || {};
   const sourceText = source[sourceProperty];
 
@@ -285,7 +303,7 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary, t
     "sc:status": { "@id": status },
     "sc:sourcePropertyPath": {
       "@type": "sc:PropertyPath",
-      "sc:path": [{ "@id": "sc:source" }, { "@id": firstTextProperty() }],
+      "sc:path": [{ "@id": "sc:source" }, { "@id": selectedTagTeamSourceProperty() }],
       "sc:multiValuePolicy": { "@id": "sc:EnrichEachValue" },
     },
     "sc:tagTeamVersion": tagTeamVersion,
@@ -607,6 +625,11 @@ function buildMappingManifest() {
     "sc:hasHeaderRow": el.hasHeaderRow.checked,
     "sc:recordIdStrategy": { "@id": "sc:RowIndexRecordId" },
     "sc:mappingInference": { "@id": "sc:ExplicitMapping" },
+    "sc:tagTeamSourcePropertyPath": {
+      "@type": "sc:PropertyPath",
+      "sc:path": [{ "@id": "sc:source" }, { "@id": selectedTagTeamSourceProperty() }],
+      "sc:multiValuePolicy": { "@id": "sc:EnrichEachValue" },
+    },
     columnMappings: state.mappingRows.map((row) => ({
       "@type": "sc:ColumnMapping",
       "sc:sourceColumn": row.sourceColumn,
@@ -645,6 +668,39 @@ function parseCsv(text) {
   row.push(cell);
   if (row.some((item) => item.length > 0)) rows.push(row);
   return rows;
+}
+
+function inferCsvMappings(text) {
+  const [headers = []] = parseCsv(text);
+  return headers
+    .map((header) => header.trim())
+    .filter(Boolean)
+    .map((header) => ({
+      sourceColumn: header,
+      targetProperty: inferredPropertyForHeader(header),
+    }));
+}
+
+function inferredPropertyForHeader(header) {
+  const normalized = header.trim().toLowerCase().replace(/[\s_-]+/g, "");
+  const knownProperties = {
+    text: "schema:text",
+    body: "schema:text",
+    content: "schema:text",
+    url: "schema:url",
+    uri: "schema:url",
+    link: "schema:url",
+    id: "schema:identifier",
+    identifier: "schema:identifier",
+    createdat: "schema:dateCreated",
+    created: "schema:dateCreated",
+    datecreated: "schema:dateCreated",
+    timestamp: "schema:dateCreated",
+    title: "schema:name",
+    name: "schema:name",
+    description: "schema:text",
+  };
+  return knownProperties[normalized] || `schema:${normalized || "value"}`;
 }
 
 function resolveJsonPointer(input, pointer) {
@@ -688,6 +744,7 @@ function renderMapping() {
   el.mappingRows.querySelectorAll("input").forEach((input) => {
     input.addEventListener("input", () => {
       readMappingRows();
+      syncTagTeamSourceSelection();
       renderMappingPreview();
       renderSourcePath();
     });
@@ -696,9 +753,11 @@ function renderMapping() {
     button.addEventListener("click", () => {
       readMappingRows();
       state.mappingRows.splice(Number(button.dataset.removeIndex), 1);
+      syncTagTeamSourceSelection();
       renderMapping();
     });
   });
+  syncTagTeamSourceSelection();
   renderMappingPreview();
   renderSourcePath();
 }
@@ -710,12 +769,46 @@ function readMappingRows() {
     const target = row.querySelector("[data-target-index]").value.trim();
     if (source || target) rows.push({ sourceColumn: source, targetProperty: target });
   });
-  state.mappingRows = rows.length > 0 ? rows : [{ sourceColumn: "description", targetProperty: "schema:description" }];
+  state.mappingRows = rows.length > 0 ? rows : [{ sourceColumn: "Text", targetProperty: "schema:text" }];
 }
 
 function renderMappingPreview() {
   state.mappingManifest = buildMappingManifest();
   el.mappingPreview.textContent = stableStringify(state.mappingManifest, 2);
+}
+
+function syncTagTeamSourceSelection() {
+  const options = tagTeamSourceOptions();
+  const visibleOptions = options.length > 0 ? options : [{ sourceColumn: "Text", targetProperty: "schema:text" }];
+  const current = options.find((option) => option.targetProperty === state.tagTeamSourceProperty)
+    ? state.tagTeamSourceProperty
+    : preferredTagTeamSourceProperty(visibleOptions);
+  state.tagTeamSourceProperty = current;
+  el.tagTeamSourceSelect.innerHTML = visibleOptions.map((option) => `
+    <option value="${escapeAttribute(option.targetProperty)}" ${option.targetProperty === current ? "selected" : ""}>
+      ${escapeHtml(option.sourceColumn || option.targetProperty)} -> ${escapeHtml(option.targetProperty)}
+    </option>
+  `).join("");
+}
+
+function tagTeamSourceOptions() {
+  return state.mappingRows
+    .filter((row) => row.targetProperty && row.sourceColumn)
+    .map((row) => ({
+      sourceColumn: row.sourceColumn,
+      targetProperty: row.targetProperty,
+    }));
+}
+
+function preferredTagTeamSourceProperty(options) {
+  return options.find((option) => option.targetProperty === "schema:text")?.targetProperty ||
+    options.find((option) => option.sourceColumn.toLowerCase() === "text")?.targetProperty ||
+    options[0]?.targetProperty ||
+    "schema:text";
+}
+
+function selectedTagTeamSourceProperty() {
+  return state.tagTeamSourceProperty || "schema:text";
 }
 
 function renderStats() {
@@ -730,7 +823,7 @@ function renderStats() {
 }
 
 function renderSourcePath() {
-  el.sourcePath.textContent = `sc:source / ${firstTextProperty()}`;
+  el.sourcePath.textContent = `sc:source / ${selectedTagTeamSourceProperty()}`;
 }
 
 function renderResults() {
@@ -908,6 +1001,9 @@ async function restoreSession() {
   state.format = snapshot["sc:snapshot"]["sc:format"] || "csv";
   state.mappingRows = snapshot["sc:snapshot"]["sc:mappingRows"] || state.mappingRows;
   state.mappingManifest = snapshot["sc:snapshot"]["sc:mappingManifest"] || null;
+  state.tagTeamSourceProperty = snapshot["sc:snapshot"]["sc:tagTeamSourceProperty"] ||
+    state.mappingManifest?.["sc:tagTeamSourcePropertyPath"]?.["sc:path"]?.[1]?.["@id"] ||
+    state.tagTeamSourceProperty;
   state.dataset = snapshot["sc:snapshot"]["sc:dataset"] || null;
   state.run = snapshot["sc:snapshot"]["sc:run"] || null;
   state.ontologySet = snapshot["sc:snapshot"]["sc:ontologySet"] || defaultOntologySet();
@@ -968,6 +1064,7 @@ function buildSessionSnapshot() {
     "sc:hasHeaderRow": el.hasHeaderRow.checked,
     "sc:jsonPointer": el.jsonPointer.value,
     "sc:mappingRows": state.mappingRows,
+    "sc:tagTeamSourceProperty": selectedTagTeamSourceProperty(),
     "sc:mappingManifest": state.mappingManifest || buildMappingManifest(),
     "sc:dataset": state.dataset,
     "sc:run": state.run,
@@ -1134,7 +1231,10 @@ function buildContextManifest() {
       sc: "https://semanticore.fandaws.org/ns/",
       schema: "https://schema.org/",
       tagteam: "https://tagteam.fandaws.org/ontology/",
-      description: "schema:description",
+      text: "schema:text",
+      url: "schema:url",
+      identifier: "schema:identifier",
+      dateCreated: "schema:dateCreated",
       name: "schema:name",
       source: "sc:source",
     },
@@ -1209,15 +1309,9 @@ async function idbDelete(storeName, key) {
   });
 }
 
-function firstTextProperty() {
-  return state.mappingRows.find((row) => row.targetProperty.includes("description"))?.targetProperty ||
-    state.mappingRows[0]?.targetProperty ||
-    "schema:description";
-}
-
 function firstSourceText(record) {
   const source = record["sc:source"] || {};
-  return source[firstTextProperty()] || "";
+  return source[selectedTagTeamSourceProperty()] || "";
 }
 
 function makeWarning(code, message, recordId = "") {
