@@ -46,6 +46,7 @@ export interface EnrichedExportInput {
   "sc:graph"?: NamedGraph | NamedGraph[] | null;
   "sc:graphs"?: NamedGraph[];
   "sc:warnings"?: WarningResource[];
+  "sc:parseTraceInclusion"?: "summary" | "full";
 }
 
 export type DatasetResult = AdapterResult<SemantiCoreDataset>;

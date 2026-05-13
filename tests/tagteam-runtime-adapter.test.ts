@@ -242,6 +242,36 @@ test("TagTeam runtime adapter forwards supported TagTeam options", () => {
   strictEqual(received?.useLegacy, true);
 });
 
+test("TagTeam runtime adapter summarizes parse trace metadata by default", () => {
+  const runtime = createTagTeamRuntimeAdapter(tagTeamWithParseTrace());
+  const graph = runtime.buildGraph("Trace text.", tagTeamOptions(), ontologySet());
+  if (Array.isArray(graph)) throw new Error("Expected single graph node.");
+  const metadata = graph._metadata as Record<string, unknown>;
+  const sentence = Array.isArray(metadata.sentences) ? metadata.sentences[0] as Record<string, unknown> : {};
+  strictEqual(metadata.entities, 1);
+  strictEqual(sentence.sentenceIndex, 0);
+  strictEqual(sentence.text, "Trace text.");
+  strictEqual("tokens" in sentence, false);
+  strictEqual("tags" in sentence, false);
+  strictEqual("arcs" in sentence, false);
+  strictEqual("root" in sentence, false);
+});
+
+test("TagTeam runtime adapter can attach full parse trace to ParsingAct node", () => {
+  const runtime = createTagTeamRuntimeAdapter(tagTeamWithParseTrace(), { parseTraceInclusion: "full" });
+  const graph = runtime.buildGraph("Trace text.", tagTeamOptions(), ontologySet());
+  if (Array.isArray(graph)) throw new Error("Expected single graph node.");
+  const metadata = graph._metadata as Record<string, unknown>;
+  const sentence = Array.isArray(metadata.sentences) ? metadata.sentences[0] as Record<string, unknown> : {};
+  strictEqual("tokens" in sentence, false);
+  const nodes = graph["@graph"] as Record<string, unknown>[];
+  const parsingAct = nodes.find((node) => node["@id"] === "inst:ParsingAct_trace");
+  const trace = parsingAct?.["tagteam:parseTrace"] as Record<string, unknown> | undefined;
+  const traceSentence = Array.isArray(trace?.sentences) ? trace.sentences[0] as Record<string, unknown> : {};
+  deepStrictEqual(traceSentence.tokens, ["Trace", "text", "."]);
+  strictEqual(traceSentence.root, 1);
+});
+
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);
@@ -252,6 +282,43 @@ function tagTeamOptions(): TagTeamOptions {
     "@type": "sc:TagTeamOptions",
     "sc:ontologyThreshold": 0.2,
     "sc:verbose": false,
+  };
+}
+
+function tagTeamWithParseTrace() {
+  return {
+    version: "7.0.0",
+    buildGraph(sourceText: string) {
+      return {
+        "@graph": [
+          {
+            "@id": "inst:ParsingAct_trace",
+            "@type": ["IntentionalAct", "owl:NamedIndividual"],
+            "rdfs:label": "Semantic parsing act",
+          },
+        ],
+        "_metadata": {
+          entities: 1,
+          acts: 0,
+          roles: 0,
+          sentences: [
+            {
+              sentenceIndex: 0,
+              text: sourceText,
+              tokenSpan: [0, 2],
+              segmentationType: "standard",
+              logicalConnector: null,
+              modalMarker: null,
+              isParenthetical: false,
+              tokens: ["Trace", "text", "."],
+              tags: ["NN", "NN", "."],
+              arcs: [{ dependent: 1, head: 0, label: "root" }],
+              root: 1,
+            },
+          ],
+        },
+      };
+    },
   };
 }
 

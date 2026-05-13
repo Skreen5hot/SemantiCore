@@ -93,6 +93,8 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes("JSON.parse(content)"), true);
   strictEqual(js.includes('normalizedGraph["sc:contentHash"] = canonicalContentHash(normalizedGraph);'), true);
   strictEqual(js.includes("normalizeJsonLdTypes"), true);
+  strictEqual(js.includes('const parseTraceInclusion = "summary";'), true);
+  strictEqual(js.includes('"sc:parseTraceInclusion": parseTraceInclusion'), true);
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {

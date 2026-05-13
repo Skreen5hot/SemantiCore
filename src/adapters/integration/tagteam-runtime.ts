@@ -1,4 +1,4 @@
-import type { JsonLdNode, OntologySet, TagTeamOptions, TagTeamRuntime } from "../../kernel/types.js";
+import type { JsonLdNode, JsonValue, OntologySet, TagTeamOptions, TagTeamRuntime } from "../../kernel/types.js";
 
 export interface TagTeamLike {
   version?: string;
@@ -11,8 +11,11 @@ export interface TagTeamLike {
 export interface TagTeamRuntimeAdapterOptions {
   fallbackVersion?: string;
   useOntologies?: boolean;
+  parseTraceInclusion?: ParseTraceInclusion;
   onInvocation?: (diagnostics: TagTeamRuntimeInvocationDiagnostics) => void;
 }
+
+export type ParseTraceInclusion = "summary" | "full";
 
 export interface TagTeamRuntimeInvocationDiagnostics {
   ontologyOptionPassed: boolean;
@@ -20,6 +23,7 @@ export interface TagTeamRuntimeInvocationDiagnostics {
   compiledOntologyCount: number;
   ontologyContentBytes: number;
   tagTeamOptionKeys: string[];
+  parseTraceInclusion: ParseTraceInclusion;
 }
 
 export function createTagTeamRuntimeAdapter(
@@ -29,11 +33,12 @@ export function createTagTeamRuntimeAdapter(
   return {
     version: tagTeam.version ?? adapterOptions.fallbackVersion ?? "unknown",
     buildGraph(sourceText: string, options: TagTeamOptions, ontologySet: OntologySet): JsonLdNode | JsonLdNode[] {
-      const result = buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, adapterOptions.useOntologies !== false);
+      const parseTraceInclusion = adapterOptions.parseTraceInclusion ?? "summary";
+      const result = buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, adapterOptions.useOntologies !== false, parseTraceInclusion);
       adapterOptions.onInvocation?.(result.diagnostics);
       const tagTeamOptions = result.options;
       const output = tagTeam.buildGraph(sourceText, tagTeamOptions);
-      return normalizeTagTeamOutput(output);
+      return normalizeTagTeamOutput(output, parseTraceInclusion);
     },
   };
 }
@@ -44,7 +49,7 @@ export function buildTagTeamOptions(
   ontologySet: OntologySet,
   useOntologies: boolean,
 ): Record<string, unknown> {
-  return buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, useOntologies).options;
+  return buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, useOntologies, "summary").options;
 }
 
 export function buildTagTeamOptionsWithDiagnostics(
@@ -52,6 +57,7 @@ export function buildTagTeamOptionsWithDiagnostics(
   options: TagTeamOptions,
   ontologySet: OntologySet,
   useOntologies: boolean,
+  parseTraceInclusion: ParseTraceInclusion = "summary",
 ): { options: Record<string, unknown>; diagnostics: TagTeamRuntimeInvocationDiagnostics } {
   const tagTeamOptions: Record<string, unknown> = {
     ontologyThreshold: options["sc:ontologyThreshold"] ?? 0,
@@ -76,15 +82,61 @@ export function buildTagTeamOptionsWithDiagnostics(
       compiledOntologyCount: Boolean(tagTeamOptions.ontology) ? ontologyContents.length : 0,
       ontologyContentBytes: ontologyContents.reduce((total, content) => total + new TextEncoder().encode(content).length, 0),
       tagTeamOptionKeys: Object.keys(tagTeamOptions).sort(),
+      parseTraceInclusion,
     },
   };
 }
 
-export function normalizeTagTeamOutput(output: unknown): JsonLdNode | JsonLdNode[] {
+export function normalizeTagTeamOutput(output: unknown, parseTraceInclusion: ParseTraceInclusion = "summary"): JsonLdNode | JsonLdNode[] {
   if (Array.isArray(output)) {
-    return output.map((node) => asJsonLdNode(node));
+    return output.map((node) => normalizeParseTrace(asJsonLdNode(node), parseTraceInclusion));
   }
-  return asJsonLdNode(output);
+  return normalizeParseTrace(asJsonLdNode(output), parseTraceInclusion);
+}
+
+function normalizeParseTrace(output: JsonLdNode, parseTraceInclusion: ParseTraceInclusion): JsonLdNode {
+  const metadata = output["_metadata"];
+  if (!isRecord(metadata)) return output;
+  const normalized = structuredClone(output) as JsonLdNode;
+  normalized["_metadata"] = summarizeMetadata(metadata) as JsonValue;
+  if (parseTraceInclusion === "full") {
+    attachParseTrace(normalized, metadata);
+  }
+  return normalized;
+}
+
+function summarizeMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+  const summary = structuredClone(metadata) as Record<string, unknown>;
+  if (Array.isArray(summary.sentences)) {
+    summary.sentences = summary.sentences.map(summarySentence);
+  }
+  return summary;
+}
+
+function summarySentence(sentence: unknown): unknown {
+  if (!isRecord(sentence)) return sentence;
+  const summary = structuredClone(sentence) as Record<string, unknown>;
+  delete summary.tokens;
+  delete summary.tags;
+  delete summary.arcs;
+  delete summary.root;
+  return summary;
+}
+
+function attachParseTrace(output: JsonLdNode, metadata: Record<string, unknown>): void {
+  const graph = output["@graph"];
+  if (!Array.isArray(graph)) return;
+  const parsingAct = graph.find(isParsingActNode);
+  if (isRecord(parsingAct)) {
+    parsingAct["tagteam:parseTrace"] = structuredClone(metadata) as JsonValue;
+  }
+}
+
+function isParsingActNode(node: unknown): node is Record<string, unknown> {
+  if (!isRecord(node)) return false;
+  if (typeof node["@id"] === "string" && node["@id"].includes("ParsingAct")) return true;
+  const types = Array.isArray(node["@type"]) ? node["@type"] : [node["@type"]];
+  return types.some((type) => type === "IntentionalAct") && node["rdfs:label"] === "Semantic parsing act";
 }
 
 function compileOntologyTaggers(tagTeam: TagTeamLike, ontologyContents: string[]): unknown {

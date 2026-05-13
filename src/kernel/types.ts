@@ -32,6 +32,7 @@ export interface TagTeamOptions extends JsonLdNode {
   "@type": "sc:TagTeamOptions";
   "sc:ontologyThreshold"?: number;
   "sc:verbose"?: boolean;
+  "sc:parseTraceInclusion"?: "summary" | "full";
 }
 
 export interface EnrichmentConfiguration extends JsonLdNode {

@@ -253,6 +253,8 @@ The default policy is `sc:RejectOnMismatch`.
 
 `sc:verbose` is an `xsd:boolean`. If true, TagTeam debug metadata MAY be preserved in the named graph resource. If false, debug metadata SHOULD be omitted unless required to explain an error.
 
+`sc:parseTraceInclusion` controls how much TagTeam parse trace is included in graph exports. The default value is `"summary"`, which MUST preserve semantic sentence metadata while omitting token arrays, POS tags, dependency arcs, and root indexes. A value of `"full"` MAY preserve the full trace by attaching it to the generated TagTeam parsing act node as `tagteam:parseTrace`; the graph-level `sc:tagTeamMetadata` SHOULD remain summary-sized.
+
 ## 7. Dataset and Record Model
 
 A SemantiCore dataset is JSON-LD containing source records.
@@ -507,6 +509,8 @@ TagTeam output MUST be attached as a JSON-LD named graph resource. It MUST NOT b
 ```
 
 Graph bundle exports SHOULD consolidate contexts into one top-level `@context` and represent per-record TagTeam outputs as named graph resources in a top-level `@graph` array. The named graph entries SHOULD NOT repeat the same context once per record.
+
+Graph bundle exports SHOULD declare their parse trace mode with `sc:parseTraceInclusion`.
 
 Combined exports MUST reconcile contexts:
 

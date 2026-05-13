@@ -2,6 +2,7 @@ import { createTagTeamRuntimeAdapter } from "./dist/adapters/integration/tagteam
 
 const phaseLabel = "Phase 6";
 const fallbackRuntimeVersion = "7.0.0";
+const parseTraceInclusion = "summary";
 
 const sampleCsv = `Text,title,source
 The agency shall publish the notice.,Publication duty,Regulation A
@@ -489,6 +490,7 @@ function getActiveRuntime() {
     let invocationDiagnostics = null;
     const adapter = createTagTeamRuntimeAdapter(tagTeam, {
       useOntologies: el.useOntologies.checked,
+      parseTraceInclusion,
       onInvocation(diagnostics) {
         invocationDiagnostics = diagnostics;
       },
@@ -541,6 +543,7 @@ function tagTeamOptions() {
     "@type": "sc:TagTeamOptions",
     "sc:ontologyThreshold": 0.2,
     "sc:verbose": false,
+    "sc:parseTraceInclusion": parseTraceInclusion,
   };
 }
 
@@ -552,6 +555,7 @@ function ontologyBridgeBase(ontologySet) {
     enabledOntologyCount: enabled.length,
     compiledOntologyCount: 0,
     ontologyContentBytes: 0,
+    parseTraceInclusion,
   };
 }
 
@@ -567,6 +571,7 @@ function ontologyBridgeFromInvocation(diagnostics, ontologySet, ontologySupport,
   bridge.compiledOntologyCount = Number(diagnostics?.compiledOntologyCount || 0);
   bridge.ontologyContentBytes = Number(diagnostics?.ontologyContentBytes || 0);
   bridge.tagTeamOptionKeys = diagnostics?.tagTeamOptionKeys || [];
+  bridge.parseTraceInclusion = diagnostics?.parseTraceInclusion || parseTraceInclusion;
   return bridge;
 }
 
@@ -582,6 +587,7 @@ function ontologyBridgeReport(bridge, nodes) {
     "sc:ontologyContentBytes": Number(bridge.ontologyContentBytes || 0),
     "sc:tagTeamOptionKeys": bridge.tagTeamOptionKeys || [],
     "sc:ontologyMatchCount": countOntologyMatches(nodes),
+    "sc:parseTraceInclusion": bridge.parseTraceInclusion || parseTraceInclusion,
   };
 }
 
@@ -1059,6 +1065,7 @@ function buildGraphBundle() {
     "sc:ontologySet": { "@id": (state.ontologySet || defaultOntologySet())["@id"] },
     "sc:contextManifest": { "@id": (state.contextManifest || buildContextManifest())["@id"] },
     "sc:tagTeamVersion": state.run?.["sc:runtime"]?.["sc:tagTeamVersion"] || state.runtime?.["sc:tagTeamVersion"] || fallbackRuntimeVersion,
+    "sc:parseTraceInclusion": parseTraceInclusion,
     "sc:totalGraphs": graphs.length,
     "sc:totalRecords": runRecords().length,
     "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),

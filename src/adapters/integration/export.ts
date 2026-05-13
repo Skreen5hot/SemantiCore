@@ -26,6 +26,7 @@ export function exportGraphBundle(input: EnrichedExportInput): string {
     "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
     "@type": ["sc:GraphBundle"],
     "schema:name": "TagTeam JSON-LD graph bundle",
+    "sc:parseTraceInclusion": input["sc:parseTraceInclusion"] ?? "summary",
     "sc:totalGraphs": graphs.length,
     "sc:totalRecords": collectRecords(input).length,
     "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),

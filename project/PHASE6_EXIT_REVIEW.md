@@ -35,6 +35,7 @@ What changed:
 - Routed the browser workbench through the compiled `createTagTeamRuntimeAdapter` module instead of maintaining a local duplicate or scattering direct `window.TagTeam.buildGraph` calls.
 - Changed enabled ontology handling to compile each TTL document independently and merge taggers, avoiding raw Turtle string concatenation across files.
 - Preserved TagTeam `_metadata` alongside named graph output as `sc:tagTeamMetadata`.
+- Added `sc:parseTraceInclusion` and defaulted graph bundle exports to summary parse trace metadata, omitting token, POS-tag, dependency-arc, and root-index debug payload from graph-level metadata.
 - Delegated `emitClauseAuthorityMatch` through the merged multi-ontology tagger proxy.
 - Removed local graph-context shadows for ontology and role output terms including `is_bearer_of`, `realized_in`, `ontologyMatchOWLType`, `Process`, and `Role`.
 
@@ -141,6 +142,7 @@ Expected:
 - The report includes `sc:ontologyCompileMode` showing that SemantiCore relies on TagTeam's default ontology priority chain.
 - The report includes `sc:compiledOntologyCount` so multi-ontology compilation is visible.
 - Named graph output preserves `_metadata` as `sc:tagTeamMetadata` when TagTeam returns it.
+- The graph bundle declares `sc:parseTraceInclusion`; summary mode keeps sentence semantics while trimming debug-heavy token, tag, arc, and root fields.
 - The selected TagTeam graph inspector can switch between per-record graphs and defaults to a graph with ontology matches when one exists.
 
 Block if:
