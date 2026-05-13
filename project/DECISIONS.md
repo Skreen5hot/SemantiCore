@@ -232,6 +232,23 @@
 
 ---
 
+## ADR-015: Approve Phase 5 and Begin Phase 6
+
+**Date:** 2026-05-13
+
+**Decision:** Phase 5 is approved. Begin Phase 6: determinism and canonicalization hardening.
+
+**Context:** The PO reviewed the deployed Phase 5 workbench and confirmed the runtime panel, fallback runtime labeling, local TagTeam bundle surface, ontology-unavailable warning, and named graph output are sufficient for the runtime integration gate.
+
+**Consequences:**
+- Phase 5 is marked complete.
+- Phase 6 is marked in progress.
+- Browser output should remove demo-only convenience duplicates.
+- Browser and Node hashing should use canonical bytes and SHA-256 where practical.
+- Full RDF dataset normalization remains explicit work; sorted-key/JCS-style envelope canonicalization is the immediate hardening target.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

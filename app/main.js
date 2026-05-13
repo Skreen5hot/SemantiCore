@@ -1,4 +1,4 @@
-const phaseLabel = "Phase 5";
+const phaseLabel = "Phase 6";
 const fallbackRuntimeVersion = "7.0.0";
 
 const sampleCsv = `description,title,source
@@ -175,9 +175,12 @@ function normalize() {
   } catch (error) {
     state.dataset = null;
     state.run = {
-      records: [],
-      graphs: [],
-      warnings: [makeWarning("sc:UnsupportedInputShape", error.message || String(error))],
+      "@context": coreContext(),
+      "@id": "urn:semanticore:run:browser-demo:error",
+      "@type": "sc:TransformResult",
+      "sc:records": [],
+      "sc:graphs": [],
+      "sc:warnings": [makeWarning("sc:UnsupportedInputShape", error.message || String(error))],
     };
     el.inputStatus.innerHTML = `<span class="danger">${escapeHtml(error.message || String(error))}</span>`;
   }
@@ -207,9 +210,6 @@ function runEnrichment() {
     "sc:graphs": graphs,
     "sc:warnings": warnings,
     "sc:runtime": runtime.diagnostics,
-    records,
-    graphs,
-    warnings,
   };
   const runtimeLabel = runtime.kind === "tagteam" ? `TagTeam ${runtime.version}` : "deterministic fallback runtime";
   el.inputStatus.textContent = `Enriched ${records.length} record(s) locally with ${runtimeLabel}.`;
@@ -311,7 +311,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   };
 }
 
-function buildFallbackGraph(recordId, index, text) {
+function buildFallbackNodes(text) {
   const words = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
@@ -326,20 +326,13 @@ function buildFallbackGraph(recordId, index, text) {
   }));
   if (deontic) {
     nodes.push({
-      "@id": `urn:tagteam:act:${stableFragment(recordId)}:${index}`,
+      "@id": `urn:tagteam:act:${stableFragment(text)}`,
       "@type": ["tagteam:Act", "tagteam:DeonticSignal"],
       "schema:name": "deontic signal",
       "tagteam:deontic": true,
     });
   }
-  return {
-    "@context": coreContext(),
-    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
-    "@type": "sc:TagTeamGraph",
-    "sc:graphForRecord": { "@id": recordId },
-    "sc:graphIndex": index,
-    "@graph": nodes,
-  };
+  return nodes;
 }
 
 function summarizeGraph(graph) {
@@ -394,7 +387,10 @@ function getActiveRuntime() {
     warnings,
     diagnostics: runtimeDiagnostics("fallback", fallbackRuntimeVersion, false, warnings),
     buildGraph(text) {
-      return buildFallbackGraph("urn:semanticore:runtime:fallback", 0, text);
+      return {
+        "@context": coreContext(),
+        "@graph": buildFallbackNodes(text),
+      };
     },
   };
 }
@@ -675,14 +671,14 @@ function renderMappingPreview() {
 }
 
 function renderStats() {
-  const records = state.run?.records || state.dataset?.["sc:records"] || [];
+  const records = runRecords() || state.dataset?.["sc:records"] || [];
   el.recordCount.textContent = String(records.length);
-  el.enrichedCount.textContent = String((state.run?.records || []).filter((record) => {
+  el.enrichedCount.textContent = String((runRecords() || []).filter((record) => {
     const enrichment = record["sc:semanticEnrichment"];
     return enrichment?.["sc:status"]?.["@id"] === "sc:EnrichmentSucceeded";
   }).length);
-  el.warningCount.textContent = String(state.run?.warnings?.length || 0);
-  el.graphCount.textContent = String(state.run?.graphs?.length || 0);
+  el.warningCount.textContent = String(runWarnings().length);
+  el.graphCount.textContent = String(runGraphs().length);
 }
 
 function renderSourcePath() {
@@ -690,7 +686,7 @@ function renderSourcePath() {
 }
 
 function renderResults() {
-  const records = state.run?.records || state.dataset?.["sc:records"] || [];
+  const records = runRecords() || state.dataset?.["sc:records"] || [];
   if (records.length === 0) {
     el.resultsBody.innerHTML = '<tr><td colspan="7">No records yet.</td></tr>';
     return;
@@ -698,7 +694,7 @@ function renderResults() {
   el.resultsBody.innerHTML = records.map((record) => {
     const enrichment = record["sc:semanticEnrichment"];
     const summary = enrichment?.["sc:summary"];
-    const recordWarnings = (state.run?.warnings || [])
+    const recordWarnings = runWarnings()
       .filter((warning) => warning["sc:record"]?.["@id"] === record["@id"])
       .map((warning) => warning["sc:code"]["@id"])
       .join(" ");
@@ -728,21 +724,44 @@ function exportFor(kind) {
       "@context": coreContext(),
       "@id": "urn:semanticore:graph-bundle:browser-demo",
       "@type": "sc:GraphBundle",
-      "sc:graphs": state.run?.graphs || [],
+      "sc:graphs": runGraphs(),
     }, 2);
   }
-  if (kind === "warnings") return stableStringify(state.run?.warnings || [], 2);
+  if (kind === "warnings") return stableStringify(runWarnings(), 2);
   if (kind === "csv") return csvSummary();
+  if (kind === "hashes") return stableStringify(canonicalHashReport(), 2);
   if (kind === "session") return stableStringify(buildSessionSnapshot(), 2);
   return "";
 }
 
+function canonicalHashReport() {
+  return {
+    "@context": coreContext(),
+    "@id": "urn:semanticore:hash-report:browser-demo",
+    "@type": "sc:CanonicalHashReport",
+    "sc:canonicalizationAlgorithm": "sc:SortedKeyCanonicalJsonEnvelope",
+    "sc:hashAlgorithm": "sha256",
+    "sc:dataset": hashReference(state.dataset, "urn:semanticore:dataset:none"),
+    "sc:run": hashReference(state.run, "urn:semanticore:run:none"),
+    "sc:graphBundle": hashReference({
+      "@context": coreContext(),
+      "@id": "urn:semanticore:graph-bundle:browser-demo",
+      "@type": "sc:GraphBundle",
+      "sc:graphs": runGraphs(),
+    }, "urn:semanticore:graph-bundle:none"),
+    "sc:warnings": {
+      "@id": "urn:semanticore:warnings:browser-demo",
+      "sc:contentHash": canonicalContentHash(runWarnings()),
+    },
+  };
+}
+
 function csvSummary() {
   const header = "recordId,enrichmentStatus,sourceText,entityCount,actCount,roleCount,deonticDetected,namedGraphId,warningErrorCodes";
-  const rows = (state.run?.records || []).map((record) => {
+  const rows = runRecords().map((record) => {
     const enrichment = record["sc:semanticEnrichment"] || {};
     const summary = enrichment["sc:summary"] || {};
-    const warningCodes = (state.run?.warnings || [])
+    const warningCodes = runWarnings()
       .filter((warning) => warning["sc:record"]?.["@id"] === record["@id"])
       .map((warning) => warning["sc:code"]["@id"])
       .join(" ");
@@ -759,6 +778,18 @@ function csvSummary() {
     ].map(escapeCsvCell).join(",");
   });
   return `${[header, ...rows].join("\n")}\n`;
+}
+
+function runRecords() {
+  return state.run?.["sc:records"] || [];
+}
+
+function runGraphs() {
+  return state.run?.["sc:graphs"] || [];
+}
+
+function runWarnings() {
+  return state.run?.["sc:warnings"] || [];
 }
 
 function downloadText(filename, content, type) {
@@ -855,7 +886,7 @@ function addOntology() {
     "dcterms:title": title,
     "sc:enabled": true,
     "sc:mediaType": "text/turtle",
-    "sc:contentHash": `sha256:${simpleHash(content)}`,
+    "sc:contentHash": textContentHash(content),
     "sc:content": content,
     "sc:ontologyAlignment": { "@id": el.ontologyAlignment.value },
   });
@@ -880,7 +911,7 @@ function buildSessionSnapshot() {
     "sc:requiredTagTeamVersion": state.requiredTagTeamVersion,
     "sc:tagTeamVersionPolicy": state.versionPolicy,
   };
-  const contentHash = `sha256:${simpleHash(stableStringify(snapshot))}`;
+  const contentHash = canonicalContentHash(snapshot);
   return {
     "@context": coreContext(),
     "@id": "urn:semanticore:session:browser-demo",
@@ -889,7 +920,7 @@ function buildSessionSnapshot() {
     "sc:dataset": hashReference(snapshot["sc:dataset"], "urn:semanticore:dataset:none"),
     "sc:configuration": {
       "@id": "urn:semanticore:config:browser-demo",
-      "sc:contentHash": `sha256:${simpleHash(stableStringify(snapshot["sc:mappingManifest"]))}`,
+      "sc:contentHash": canonicalContentHash(snapshot["sc:mappingManifest"]),
     },
     "sc:contextManifest": hashReference(snapshot["sc:contextManifest"], "urn:semanticore:context-manifest:browser-demo"),
     "sc:ontologySet": hashReference(snapshot["sc:ontologySet"], "urn:semanticore:ontology-set:browser-demo"),
@@ -900,7 +931,7 @@ function buildSessionSnapshot() {
 function hashReference(document, fallbackId) {
   return {
     "@id": document?.["@id"] || fallbackId,
-    "sc:contentHash": `sha256:${simpleHash(stableStringify(document || {}))}`,
+    "sc:contentHash": canonicalContentHash(document || {}),
   };
 }
 
@@ -1011,6 +1042,7 @@ function buildOntologySet() {
 }
 
 function defaultOntologySet() {
+  const defaultContent = "@prefix ex: <urn:example:> .\nex:Notice a ex:InformationContentEntity .";
   return {
     "@id": "urn:semanticore:ontology-set:browser-demo",
     "@type": "sc:OntologySet",
@@ -1021,8 +1053,8 @@ function defaultOntologySet() {
         "dcterms:title": "Browser default policy vocabulary",
         "sc:enabled": true,
         "sc:mediaType": "text/turtle",
-        "sc:contentHash": "sha256:browser-default",
-        "sc:content": "@prefix ex: <urn:example:> .\nex:Notice a ex:InformationContentEntity .",
+        "sc:contentHash": textContentHash(defaultContent),
+        "sc:content": defaultContent,
         "sc:ontologyAlignment": { "@id": "sc:CCO2BFO2020Aligned" },
       },
     ],
@@ -1030,6 +1062,16 @@ function defaultOntologySet() {
 }
 
 function buildContextManifest() {
+  const contextDocument = {
+    "@context": {
+      sc: "https://semanticore.fandaws.org/ns/",
+      schema: "https://schema.org/",
+      tagteam: "https://tagteam.fandaws.org/ontology/",
+      description: "schema:description",
+      name: "schema:name",
+      source: "sc:source",
+    },
+  };
   return {
     "@context": coreContext(),
     "@id": "urn:semanticore:context-manifest:browser-demo",
@@ -1038,17 +1080,8 @@ function buildContextManifest() {
       {
         "@id": "urn:semanticore:context:browser-core",
         "@type": "sc:LocalContext",
-        "sc:contentHash": "sha256:browser-core-context",
-        "sc:contextDocument": {
-          "@context": {
-            sc: "https://semanticore.fandaws.org/ns/",
-            schema: "https://schema.org/",
-            tagteam: "https://tagteam.fandaws.org/ontology/",
-            description: "schema:description",
-            name: "schema:name",
-            source: "sc:source",
-          },
-        },
+        "sc:contentHash": canonicalContentHash(contextDocument),
+        "sc:contextDocument": contextDocument,
       },
     ],
   };
@@ -1161,13 +1194,121 @@ function stableFragment(value) {
   return String(value).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "id";
 }
 
-function simpleHash(value) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index++) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
+function canonicalContentHash(value) {
+  return textContentHash(stableStringify(value));
+}
+
+function textContentHash(value) {
+  return `sha256:${sha256Hex(utf8Bytes(value))}`;
+}
+
+function utf8Bytes(value) {
+  return new TextEncoder().encode(value);
+}
+
+function sha256Hex(bytes) {
+  return Array.from(sha256(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+const sha256InitialState = [
+  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+  0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+];
+
+const sha256RoundConstants = [
+  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+  0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+  0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+  0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+  0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+  0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+  0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+  0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+  0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+  0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+  0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+  0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+  0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+  0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+  0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+  0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+];
+
+function sha256(input) {
+  const padded = padSha256Input(input);
+  const hash = [...sha256InitialState];
+  const words = new Array(64);
+  for (let offset = 0; offset < padded.length; offset += 64) {
+    for (let index = 0; index < 16; index++) {
+      const byteOffset = offset + index * 4;
+      words[index] =
+        (padded[byteOffset] << 24) |
+        (padded[byteOffset + 1] << 16) |
+        (padded[byteOffset + 2] << 8) |
+        padded[byteOffset + 3];
+    }
+    for (let index = 16; index < 64; index++) {
+      const s0 = rotateRight(words[index - 15], 7) ^ rotateRight(words[index - 15], 18) ^ (words[index - 15] >>> 3);
+      const s1 = rotateRight(words[index - 2], 17) ^ rotateRight(words[index - 2], 19) ^ (words[index - 2] >>> 10);
+      words[index] = add32(words[index - 16], s0, words[index - 7], s1);
+    }
+
+    let [a, b, c, d, e, f, g, h] = hash;
+    for (let index = 0; index < 64; index++) {
+      const s1 = rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25);
+      const choice = (e & f) ^ (~e & g);
+      const temp1 = add32(h, s1, choice, sha256RoundConstants[index], words[index]);
+      const s0 = rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22);
+      const majority = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = add32(s0, majority);
+      h = g;
+      g = f;
+      f = e;
+      e = add32(d, temp1);
+      d = c;
+      c = b;
+      b = a;
+      a = add32(temp1, temp2);
+    }
+
+    hash[0] = add32(hash[0], a);
+    hash[1] = add32(hash[1], b);
+    hash[2] = add32(hash[2], c);
+    hash[3] = add32(hash[3], d);
+    hash[4] = add32(hash[4], e);
+    hash[5] = add32(hash[5], f);
+    hash[6] = add32(hash[6], g);
+    hash[7] = add32(hash[7], h);
   }
-  return (hash >>> 0).toString(16).padStart(8, "0");
+
+  const output = new Uint8Array(32);
+  hash.forEach((word, index) => {
+    output[index * 4] = word >>> 24;
+    output[index * 4 + 1] = word >>> 16;
+    output[index * 4 + 2] = word >>> 8;
+    output[index * 4 + 3] = word;
+  });
+  return output;
+}
+
+function padSha256Input(input) {
+  const bitLength = input.length * 8;
+  const paddedLength = Math.ceil((input.length + 9) / 64) * 64;
+  const padded = new Uint8Array(paddedLength);
+  padded.set(input);
+  padded[input.length] = 0x80;
+  const view = new DataView(padded.buffer);
+  view.setUint32(paddedLength - 8, Math.floor(bitLength / 0x100000000));
+  view.setUint32(paddedLength - 4, bitLength >>> 0);
+  return padded;
+}
+
+function rotateRight(value, bits) {
+  return (value >>> bits) | (value << (32 - bits));
+}
+
+function add32(...values) {
+  return values.reduce((sum, value) => (sum + value) >>> 0, 0);
 }
 
 function escapeHtml(value) {

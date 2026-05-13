@@ -32,9 +32,9 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("CSV Summary"), true);
 });
 
-test("GitHub Pages app advertises Phase 5 status", () => {
-  strictEqual(html.includes("Phase 5 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 5"'), true);
+test("GitHub Pages app advertises Phase 6 status", () => {
+  strictEqual(html.includes("Phase 6 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 6"'), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -55,6 +55,15 @@ test("GitHub Pages app exposes visible Phase 5 runtime controls", () => {
   strictEqual(js.includes("fromTTL"), true);
   strictEqual(js.includes("sc:TagTeamVersionMismatch"), true);
   strictEqual(js.includes("sc:ContextCollision"), true);
+});
+
+test("GitHub Pages app exposes visible Phase 6 canonical hash output", () => {
+  strictEqual(html.includes("Hashes"), true);
+  strictEqual(js.includes("sc:CanonicalHashReport"), true);
+  strictEqual(js.includes("sha256"), true);
+  strictEqual(js.includes("canonicalContentHash"), true);
+  strictEqual(/^\s+records,$/m.test(js), false);
+  strictEqual(/^\s+graphs,$/m.test(js), false);
 });
 
 test("Browser MVP does not make network calls", () => {

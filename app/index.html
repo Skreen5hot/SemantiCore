@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase5">
+  <link rel="stylesheet" href="./styles.css?v=phase6">
 </head>
 <body>
   <header class="topbar">
@@ -14,25 +14,25 @@
     </div>
     <nav class="toplinks" aria-label="Project links">
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE5_EXIT_REVIEW.md">Phase 5 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE6_EXIT_REVIEW.md">Phase 6 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 5 in progress</p>
-        <h2>Run local TagTeam.js, inspect the runtime, and keep every artifact on the edge.</h2>
+        <p class="stage">Phase 6 in progress</p>
+        <h2>Canonical JSON-LD, stable hashes, and reproducible local graph output.</h2>
         <p>
-          This browser workbench can use its deterministic fallback or a local TagTeam.js bundle supplied in the page. It does not upload data or require a server.
+          This browser workbench now tightens the JSON-LD envelope, removes demo-only output duplicates, and exposes SHA-256 hashes over canonical bytes.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Runtime integration</strong>
+          <strong>Determinism hardening</strong>
         </div>
-        <p>Load a local TagTeam bundle, enforce version policy, and attach graph output as JSON-LD named graphs.</p>
+        <p>Run locally, inspect canonical hashes, and keep the runtime boundary explicit.</p>
       </div>
     </section>
 
@@ -250,6 +250,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
             <button type="button" data-output="graphs">Graphs</button>
             <button type="button" data-output="warnings">Warnings</button>
             <button type="button" data-output="csv">CSV Summary</button>
+            <button type="button" data-output="hashes">Hashes</button>
           </div>
           <div class="button-group">
             <button type="button" data-download="jsonld">Download JSON-LD</button>
@@ -262,6 +263,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase5" type="module"></script>
+  <script src="./main.js?v=phase6" type="module"></script>
 </body>
 </html>

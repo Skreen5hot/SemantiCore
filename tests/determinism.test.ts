@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { transform } from "../src/kernel/transform.js";
-import { stableStringify } from "../src/kernel/canonicalize.js";
+import { canonicalContentHash, canonicalizeJson, sha256Hex, stableStringify } from "../src/kernel/canonicalize.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,6 +35,32 @@ try {
   passed++;
 } catch (error) {
   console.error("  \u2717 FAIL: canonicalized output strings differ");
+  console.error(" ", error instanceof Error ? error.message : String(error));
+  failed++;
+}
+
+try {
+  deepStrictEqual(
+    canonicalizeJson({ b: 2, a: { d: 4, c: 3 } }),
+    { a: { c: 3, d: 4 }, b: 2 },
+  );
+  strictEqual(stableStringify({ b: 2, a: 1 }), "{\"a\":1,\"b\":2}");
+  console.log("  \u2713 PASS: canonical JSON envelope sorts object keys recursively");
+  passed++;
+} catch (error) {
+  console.error("  \u2717 FAIL: canonical JSON envelope did not sort keys recursively");
+  console.error(" ", error instanceof Error ? error.message : String(error));
+  failed++;
+}
+
+try {
+  const helloBytes = new TextEncoder().encode("abc");
+  strictEqual(sha256Hex(helloBytes), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+  strictEqual(canonicalContentHash({ b: 2, a: 1 }), "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777");
+  console.log("  \u2713 PASS: canonical content hashes use SHA-256 over canonical bytes");
+  passed++;
+} catch (error) {
+  console.error("  \u2717 FAIL: canonical content hashes are not stable SHA-256 values");
   console.error(" ", error instanceof Error ? error.message : String(error));
   failed++;
 }

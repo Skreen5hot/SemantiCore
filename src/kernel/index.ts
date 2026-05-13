@@ -1,4 +1,10 @@
-export { stableStringify } from "./canonicalize.js";
+export {
+  canonicalBytes,
+  canonicalContentHash,
+  canonicalizeJson,
+  sha256Hex,
+  stableStringify,
+} from "./canonicalize.js";
 export { enrichRecord } from "./enrich.js";
 export { resolveSourceTexts } from "./path.js";
 export { transform } from "./transform.js";

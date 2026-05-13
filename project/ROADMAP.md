@@ -181,7 +181,7 @@ Completed surfaces:
 
 **Goal:** Integrate a locally supplied TagTeam.js runtime in browser and Node adapter contexts.
 
-**Status:** Ready for Human Review
+**Status:** Complete
 
 Completed surfaces:
 - [x] Browser runtime diagnostics panel.
@@ -196,9 +196,11 @@ Completed surfaces:
 
 **Goal:** Make SemantiCore robust enough for repeated local use and downstream graph consumers.
 
-**Status:** Not Started
+**Status:** Ready for Human Review
 
-Planned surfaces:
-- Larger conformance corpus.
-- Deterministic canonicalization hardening.
-- Fandaws/FNSR export validation hooks.
+Completed surfaces:
+- [x] Larger conformance corpus for canonical envelopes and hashes.
+- [x] Deterministic sorted-key JSON envelope hardening.
+- [x] SHA-256 content hashes over canonical bytes.
+- [x] Browser Hashes output tab.
+- [x] RDFC-1.0 gap documented for future graph-level hardening.

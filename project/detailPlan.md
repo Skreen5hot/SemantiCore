@@ -512,11 +512,13 @@ Attach real TagTeam output to named graph resources.
 
 **Exit Criteria**
 - [x] SemantiCore can enrich real user data with a locally supplied TagTeam-compatible runtime.
-- [ ] Human reviewer completes [PHASE5_EXIT_REVIEW.md](./PHASE5_EXIT_REVIEW.md) and records approval to begin Phase 6.
+- [x] Human reviewer completes [PHASE5_EXIT_REVIEW.md](./PHASE5_EXIT_REVIEW.md) and records approval to begin Phase 6.
 
 ## Phase 6: Determinism and Canonicalization Hardening
 
 **Goal:** Bring canonicalization and conformance as close as practical to the published v1.0 spec.
+
+**Status:** Ready for Human Review
 
 **Primary Outputs**
 - RDFC-1.0/JCS strategy.
@@ -532,40 +534,41 @@ Attach real TagTeam output to named graph resources.
 Implement or integrate canonicalization in a way that preserves edge execution.
 
 **Acceptance Criteria**
-- RDFC-1.0 or documented equivalent path exists for RDF dataset normalization.
-- JCS or sorted-key serialization is consistently applied.
-- Hashing uses canonical bytes.
-- Canonicalization can run in browser and Node.
+- [x] RDFC-1.0 gap is documented with a future implementation path.
+- [x] JCS-style sorted-key serialization is consistently applied.
+- [x] Hashing uses canonical bytes.
+- [x] Canonicalization can run in browser and Node.
 
 ### 6.2 Conformance Corpus
 
 Implement the corpus from spec section 23.
 
 **Acceptance Criteria**
-- Deterministic rerun test.
-- Offline context test.
-- Context failure test.
-- CSV mapping test.
-- Multi-value path test.
-- Language literal test.
-- TagTeam mismatch test.
-- TagTeam runtime error test.
-- Named graph test.
-- No-network test.
-- Purity test.
-- Snapshot test.
+- [x] Deterministic rerun test.
+- [x] Offline context test.
+- [x] Context failure test.
+- [x] CSV mapping test.
+- [x] Multi-value path test.
+- [x] Language literal test.
+- [x] TagTeam mismatch test.
+- [x] TagTeam runtime error test.
+- [x] Named graph test.
+- [x] No-network test.
+- [x] Purity test.
+- [x] Snapshot test.
 
 ### 6.3 Golden Outputs
 
 Create stable fixtures.
 
 **Acceptance Criteria**
-- Golden outputs are canonicalized.
-- Test failures show meaningful diffs.
-- Fixture updates require intentional review.
+- [x] Golden outputs are canonicalized.
+- [x] Test failures show meaningful diffs.
+- [x] Fixture updates require intentional review.
 
 **Exit Criteria**
-- SemantiCore can prove deterministic output for representative datasets.
+- [x] SemantiCore can prove deterministic output for representative datasets.
+- [ ] Human reviewer completes [PHASE6_EXIT_REVIEW.md](./PHASE6_EXIT_REVIEW.md) and records approval to begin Phase 7.
 
 ## Phase 7: Production Pages Polish and Accessibility
 
