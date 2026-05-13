@@ -127,7 +127,10 @@ test("merged ontology tagger delegates clause authority matches", () => {
       fromTTL(ttl) {
         return {
           emitClauseAuthorityMatch() {
-            return { ontologyMatchIRI: ttl.includes("Firmware") ? "urn:firmware" : "urn:drone" };
+            return {
+              ontologyMatchIRI: ttl.includes("Firmware") ? "urn:firmware" : "urn:drone",
+              matchConfidence: ttl.includes("Firmware") ? 0.4 : 0.9,
+            };
           },
         };
       },
@@ -144,10 +147,74 @@ test("merged ontology tagger delegates clause authority matches", () => {
 
   const graph = runtime.buildGraph("Firmware update.", tagTeamOptions(), multiOntologySet());
   if (Array.isArray(graph)) throw new Error("Expected single graph node.");
-  deepStrictEqual(graph.ontologyMatch, [
-    { ontologyMatchIRI: "urn:firmware" },
-    { ontologyMatchIRI: "urn:drone" },
+  deepStrictEqual(graph.ontologyMatch, {
+    ontologyMatchIRI: "urn:drone",
+    matchConfidence: 0.9,
+  });
+});
+
+test("merged ontology tagger exposes tagDefinitions and parse result union", () => {
+  const runtime = createTagTeamRuntimeAdapter({
+    version: "7.0.0",
+    OntologyTextTagger: {
+      fromTTL(ttl) {
+        const prefix = ttl.includes("Firmware") ? "firmware" : "drone";
+        return {
+          tagDefinitions: [{ id: `urn:${prefix}:Class`, type: "owl:Class" }],
+          _parseResult: parseResult(prefix),
+        };
+      },
+    },
+    buildGraph(_sourceText, options) {
+      const ontology = options?.ontology as {
+        tagDefinitions?: unknown[];
+        _parseResult?: {
+          triples?: unknown[];
+          getClasses?: () => unknown[];
+          getNamedIndividuals?: () => unknown[];
+          getLabels?: (subject: unknown) => unknown[];
+          getAltLabels?: (subject: unknown) => unknown[];
+          getProperty?: (subject: unknown, predicate: unknown) => unknown;
+          getProperties?: (subject: unknown, predicate: unknown) => unknown[];
+          getObjects?: (subject: unknown, predicate: unknown) => unknown[];
+          isSubclassOf?: (classIri: unknown, targetIri: unknown) => boolean;
+          resolveIRI?: (iri: unknown) => unknown;
+        };
+      };
+      return {
+        "@id": "urn:tagteam:parse-result",
+        "@type": "tagteam:Entity",
+        "sc:definitionCount": ontology.tagDefinitions?.length ?? 0,
+        "sc:tripleCount": ontology._parseResult?.triples?.length ?? 0,
+        "sc:classes": ontology._parseResult?.getClasses?.(),
+        "sc:namedIndividuals": ontology._parseResult?.getNamedIndividuals?.(),
+        "sc:labels": ontology._parseResult?.getLabels?.("subject"),
+        "sc:altLabels": ontology._parseResult?.getAltLabels?.("subject"),
+        "sc:property": ontology._parseResult?.getProperty?.("subject", "predicate"),
+        "sc:properties": ontology._parseResult?.getProperties?.("subject", "predicate"),
+        "sc:objects": ontology._parseResult?.getObjects?.("subject", "predicate"),
+        "sc:isSubclass": ontology._parseResult?.isSubclassOf?.("class", "target"),
+        "sc:resolved": ontology._parseResult?.resolveIRI?.("alias"),
+      };
+    },
+  });
+
+  const graph = runtime.buildGraph("Firmware update.", tagTeamOptions(), multiOntologySet());
+  if (Array.isArray(graph)) throw new Error("Expected single graph node.");
+  strictEqual(graph["sc:definitionCount"], 2);
+  strictEqual(graph["sc:tripleCount"], 2);
+  deepStrictEqual(graph["sc:classes"], [
+    { id: "urn:firmware:Class", type: "owl:Class" },
+    { id: "urn:drone:Class", type: "owl:Class" },
   ]);
+  deepStrictEqual(graph["sc:namedIndividuals"], ["firmware-individual", "drone-individual"]);
+  deepStrictEqual(graph["sc:labels"], ["firmware label", "drone label"]);
+  deepStrictEqual(graph["sc:altLabels"], ["firmware alt", "drone alt"]);
+  strictEqual(graph["sc:property"], "firmware property");
+  deepStrictEqual(graph["sc:properties"], ["firmware property", "drone property"]);
+  deepStrictEqual(graph["sc:objects"], ["firmware object", "drone object"]);
+  strictEqual(graph["sc:isSubclass"], true);
+  strictEqual(graph["sc:resolved"], "urn:firmware:resolved");
 });
 
 test("TagTeam runtime adapter forwards supported TagTeam options", () => {
@@ -226,5 +293,38 @@ function multiOntologySet(): OntologySet {
         "sc:content": "@prefix b: <urn:b:> .\nb:Drone a b:Platform .",
       },
     ],
+  };
+}
+
+function parseResult(prefix: string): Record<string, unknown> {
+  return {
+    triples: [`${prefix}:triple`],
+    getClasses() {
+      return [{ id: `urn:${prefix}:Class`, type: "owl:Class" }];
+    },
+    getNamedIndividuals() {
+      return [`${prefix}-individual`];
+    },
+    getLabels() {
+      return [`${prefix} label`];
+    },
+    getAltLabels() {
+      return [`${prefix} alt`];
+    },
+    getProperty() {
+      return `${prefix} property`;
+    },
+    getProperties() {
+      return [`${prefix} property`];
+    },
+    getObjects() {
+      return [`${prefix} object`];
+    },
+    isSubclassOf() {
+      return prefix === "drone";
+    },
+    resolveIRI(iri: unknown) {
+      return prefix === "firmware" ? "urn:firmware:resolved" : iri;
+    },
   };
 }

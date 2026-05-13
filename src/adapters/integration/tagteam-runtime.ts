@@ -89,40 +89,145 @@ export function normalizeTagTeamOutput(output: unknown): JsonLdNode | JsonLdNode
 
 function compileOntologyTaggers(tagTeam: TagTeamLike, ontologyContents: string[]): unknown {
   const taggers = ontologyContents.map((ttl) => tagTeam.OntologyTextTagger?.fromTTL(ttl));
-  const compiled = taggers.filter((tagger): tagger is NonNullable<typeof tagger> => tagger !== undefined);
+  const compiled = taggers.filter(isRecord);
   if (compiled.length === 1) return compiled[0];
   return mergeOntologyTaggers(compiled);
 }
 
-function mergeOntologyTaggers(taggers: unknown[]): unknown {
+function mergeOntologyTaggers(taggers: Record<string, unknown>[]): unknown {
+  const list = taggers.filter(isRecord);
   return {
     tagText(...args: unknown[]): unknown[] {
-      return taggers.flatMap((tagger) => {
-        const candidate = tagger as { tagText?: (...values: unknown[]) => unknown };
-        if (typeof candidate.tagText !== "function") return [];
-        const result = candidate.tagText(...args);
+      return list.flatMap((tagger) => {
+        const fn = tagger.tagText;
+        if (typeof fn !== "function") return [];
+        const result = fn.apply(tagger, args);
         return Array.isArray(result) ? result : result ? [result] : [];
       });
     },
     getStats(): Record<string, number> {
-      return taggers.reduce<Record<string, number>>((summary, tagger) => {
-        const candidate = tagger as { getStats?: () => Record<string, unknown> };
-        const stats = typeof candidate.getStats === "function" ? candidate.getStats() : {};
+      return list.reduce<Record<string, number>>((summary, tagger) => {
+        const fn = tagger.getStats;
+        const stats = typeof fn === "function" ? fn.call(tagger) as Record<string, unknown> : {};
         Object.entries(stats).forEach(([key, value]) => {
           if (typeof value === "number") summary[key] = (summary[key] ?? 0) + value;
         });
         return summary;
-      }, { taggerCount: taggers.length });
+      }, { taggerCount: list.length });
     },
-    emitClauseAuthorityMatch(...args: unknown[]): unknown[] {
-      return taggers.flatMap((tagger) => {
-        const candidate = tagger as { emitClauseAuthorityMatch?: (...values: unknown[]) => unknown };
-        if (typeof candidate.emitClauseAuthorityMatch !== "function") return [];
-        const result = candidate.emitClauseAuthorityMatch(...args);
-        return Array.isArray(result) ? result : result ? [result] : [];
-      });
+    get tagDefinitions(): unknown[] {
+      return list.flatMap((tagger) => Array.isArray(tagger.tagDefinitions) ? tagger.tagDefinitions : []);
+    },
+    get _parseResult(): unknown {
+      const children = list.map((tagger) => tagger._parseResult).filter(isRecord);
+      if (children.length === 0) return null;
+      if (children.length === 1) return children[0];
+      return mergedParseResult(children);
+    },
+    emitClauseAuthorityMatch(...args: unknown[]): unknown {
+      const candidates = list
+        .map((tagger) => {
+          const fn = tagger.emitClauseAuthorityMatch;
+          return typeof fn === "function" ? fn.apply(tagger, args) : null;
+        })
+        .filter((result) => result !== null && result !== undefined);
+      if (candidates.length === 0) return null;
+      return candidates.sort((a, b) => confidenceOf(b) - confidenceOf(a))[0];
     },
   };
+}
+
+function mergedParseResult(children: Record<string, unknown>[]): unknown {
+  const callEach = (method: string, args: unknown[], pick: (results: unknown[]) => unknown): unknown => {
+    const results: unknown[] = [];
+    for (const child of children) {
+      const fn = child[method];
+      if (typeof fn !== "function") continue;
+      results.push(fn.apply(child, args));
+    }
+    return pick(results);
+  };
+
+  return {
+    get triples(): unknown[] {
+      return children.flatMap((child) => Array.isArray(child.triples) ? child.triples : []);
+    },
+    getClasses(): unknown[] {
+      return callEach("getClasses", [], unionArray) as unknown[];
+    },
+    getNamedIndividuals(): unknown[] {
+      return callEach("getNamedIndividuals", [], unionArray) as unknown[];
+    },
+    getLabels(subject: unknown): unknown[] {
+      return callEach("getLabels", [subject], unionArray) as unknown[];
+    },
+    getAltLabels(subject: unknown): unknown[] {
+      return callEach("getAltLabels", [subject], unionArray) as unknown[];
+    },
+    getProperty(subject: unknown, predicate: unknown): unknown {
+      return callEach("getProperty", [subject, predicate], firstNonNull);
+    },
+    getProperties(subject: unknown, predicate: unknown): unknown[] {
+      return callEach("getProperties", [subject, predicate], unionArray) as unknown[];
+    },
+    getObjects(subject: unknown, predicate: unknown): unknown[] {
+      return callEach("getObjects", [subject, predicate], unionArray) as unknown[];
+    },
+    isSubclassOf(classIri: unknown, targetIri: unknown): boolean {
+      return children.some((child) => {
+        const fn = child.isSubclassOf;
+        return typeof fn === "function" && fn.call(child, classIri, targetIri) === true;
+      });
+    },
+    resolveIRI(iri: unknown): unknown {
+      for (const child of children) {
+        const fn = child.resolveIRI;
+        if (typeof fn !== "function") continue;
+        const resolved = fn.call(child, iri);
+        if (resolved && resolved !== iri) return resolved;
+      }
+      return iri;
+    },
+  };
+}
+
+function unionArray(results: unknown[]): unknown[] {
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  for (const result of results) {
+    if (!Array.isArray(result)) continue;
+    for (const item of result) {
+      const key = unionKey(item);
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+function unionKey(item: unknown): string | null {
+  if (typeof item === "string") return `string:${item}`;
+  if (isRecord(item)) {
+    const id = item.id ?? item["@id"];
+    const type = item.type ?? item["@type"];
+    if (typeof id === "string") return `object:${id}|${typeof type === "string" ? type : ""}`;
+  }
+  return null;
+}
+
+function firstNonNull(results: unknown[]): unknown {
+  return results.find((result) => result !== null && result !== undefined && result !== "") ?? null;
+}
+
+function confidenceOf(value: unknown): number {
+  if (!isRecord(value)) return 0;
+  const confidence = value.matchConfidence ?? value.ontologyMatchConfidence ?? value.confidence;
+  return typeof confidence === "number" ? confidence : 0;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function enabledOntologyContents(ontologySet: OntologySet): string[] {

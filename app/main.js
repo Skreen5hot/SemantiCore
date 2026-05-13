@@ -1300,7 +1300,7 @@ function defaultOntologySet() {
         "@id": "urn:semanticore:ontology:browser-default",
         "@type": "sc:LocalOntology",
         "dcterms:title": "Browser default policy vocabulary",
-        "sc:enabled": true,
+        "sc:enabled": false,
         "sc:mediaType": "text/turtle",
         "sc:contentHash": textContentHash(defaultContent),
         "sc:content": defaultContent,
