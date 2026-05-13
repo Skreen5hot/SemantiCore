@@ -161,7 +161,7 @@ function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNo
   const graph: NamedGraph = {
     "@context": graphContextFor(tagTeamOutput),
     "@id": graphIdForRecord(recordId, index),
-    "@type": "sc:TagTeamGraph",
+    "@type": ["sc:TagTeamGraph"],
     "sc:graphForRecord": iri(recordId),
     "sc:graphIndex": index,
     "@graph": extractGraphNodes(tagTeamOutput),

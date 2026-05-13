@@ -28,7 +28,7 @@ test("offline local context resolves compact semantic property paths", () => {
   strictEqual(result.warnings.length, 0);
   const enrichment = result.record["sc:semanticEnrichment"];
   strictEqual(isNode(enrichment) ? enrichment["@type"] : null, "sc:TagTeamEnrichment");
-  strictEqual(!Array.isArray(result.graph) ? result.graph?.["@type"] : null, "sc:TagTeamGraph");
+  deepStrictEqual(!Array.isArray(result.graph) ? result.graph?.["@type"] : null, ["sc:TagTeamGraph"]);
 });
 
 test("unresolved path term emits ContextResolutionError with path index", () => {
@@ -57,7 +57,7 @@ test("WarnAndRunOnMismatch emits warning and still enriches", () => {
   const config = baseConfig();
   config["sc:tagTeamVersionPolicy"] = { "@id": "sc:WarnAndRunOnMismatch" };
   const result = enrichRecord(baseRecord(), config, baseContextManifest(), baseOntologySet(), graphRuntime("8.0.0"));
-  strictEqual(!Array.isArray(result.graph) ? result.graph?.["@type"] : null, "sc:TagTeamGraph");
+  deepStrictEqual(!Array.isArray(result.graph) ? result.graph?.["@type"] : null, ["sc:TagTeamGraph"]);
   strictEqual(result.warnings[0]["sc:code"]["@id"], "sc:TagTeamVersionMismatch");
 });
 
@@ -122,7 +122,7 @@ test("TagTeam runtime errors become JSON-LD warnings", () => {
 test("TagTeam graph output is represented as top-level @graph", () => {
   const result = enrichRecord(baseRecord(), baseConfig(), baseContextManifest(), baseOntologySet(), graphRuntime());
   const graph = !Array.isArray(result.graph) ? result.graph : null;
-  strictEqual(graph?.["@type"], "sc:TagTeamGraph");
+  deepStrictEqual(graph?.["@type"], ["sc:TagTeamGraph"]);
   strictEqual(Array.isArray(graph?.["@graph"]), true);
   strictEqual("sc:jsonld" in (result.graph ?? {}), false);
 });

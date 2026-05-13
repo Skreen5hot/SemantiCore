@@ -494,7 +494,7 @@ TagTeam output MUST be attached as a JSON-LD named graph resource. It MUST NOT b
     "cco": "https://www.commoncoreontologies.org/"
   },
   "@id": "urn:semanticore:graph:example:0",
-  "@type": "sc:TagTeamGraph",
+  "@type": ["sc:TagTeamGraph"],
   "sc:graphForRecord": { "@id": "urn:semanticore:record:example:0" },
   "sc:graphIndex": 0,
   "@graph": [

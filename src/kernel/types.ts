@@ -123,7 +123,7 @@ export interface TagTeamEnrichment extends JsonLdNode {
 
 export interface NamedGraph extends JsonLdNode {
   "@id": string;
-  "@type": "sc:TagTeamGraph";
+  "@type": ["sc:TagTeamGraph"];
   "sc:graphForRecord": IriNode;
   "sc:graphIndex": number;
   "@graph": JsonLdNode[];

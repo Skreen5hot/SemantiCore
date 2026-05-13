@@ -133,8 +133,8 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   const csv = exportCsvSummary(input);
 
   strictEqual(canonical.includes("sc:TransformResult"), true);
-  strictEqual(graphBundle.includes('"@type": "sc:GraphBundle"'), true);
   const parsedGraphBundle = JSON.parse(graphBundle);
+  deepStrictEqual(parsedGraphBundle["@type"], ["sc:GraphBundle"]);
   strictEqual(Array.isArray(parsedGraphBundle["@graph"]), true);
   strictEqual(parsedGraphBundle["sc:totalGraphs"], 1);
   strictEqual(parsedGraphBundle["sc:totalRecords"], 1);
@@ -143,10 +143,11 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   const bundledGraph = parsedGraphBundle["@graph"][0];
   strictEqual(bundledGraph["@context"], undefined);
   strictEqual(bundledGraph["@id"], "urn:semanticore:graph:export:0");
-  strictEqual(bundledGraph["@type"], "sc:TagTeamGraph");
+  deepStrictEqual(bundledGraph["@type"], ["sc:TagTeamGraph"]);
+  strictEqual(String(bundledGraph["sc:contentHash"]).startsWith("sha256:"), true);
   strictEqual(bundledGraph["sc:graphForRecord"]["@id"], "urn:semanticore:record:export:0");
   strictEqual(bundledGraph["sc:graphIndex"], 0);
-  strictEqual(bundledGraph["sc:ontologyBridge"]["@type"], "sc:OntologyBridgeReport");
+  deepStrictEqual(bundledGraph["sc:ontologyBridge"]["@type"], ["sc:OntologyBridgeReport"]);
   strictEqual(bundledGraph["sc:ontologyBridge"]["sc:ontologyMatchCount"], 1);
   strictEqual(bundledGraph["sc:tagTeamMetadata"].entities, 1);
   strictEqual(
@@ -220,11 +221,11 @@ function enrichedExportInput(): EnrichedExportInput {
         tagteam: "http://tagteam.fandaws.com/ontology/",
       },
       "@id": "urn:semanticore:graph:export:0",
-      "@type": "sc:TagTeamGraph",
+      "@type": ["sc:TagTeamGraph"],
       "sc:graphForRecord": { "@id": "urn:semanticore:record:export:0" },
       "sc:graphIndex": 0,
       "sc:ontologyBridge": {
-        "@type": "sc:OntologyBridgeReport",
+        "@type": ["sc:OntologyBridgeReport"],
         "sc:ontologyOptionStatus": { "@id": "sc:OntologyCompiledAndPassed" },
         "sc:ontologyOptionPassed": true,
         "sc:ontologyCompileMode": { "@id": "sc:TagTeamDefaultPriorityChain" },

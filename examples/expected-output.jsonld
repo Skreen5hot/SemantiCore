@@ -139,7 +139,9 @@
       "cco": "https://www.commoncoreontologies.org/"
     },
     "@id": "urn:semanticore:graph:example:0",
-    "@type": "sc:TagTeamGraph",
+    "@type": [
+      "sc:TagTeamGraph"
+    ],
     "sc:graphForRecord": {
       "@id": "urn:semanticore:record:example:0"
     },

@@ -347,7 +347,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   const graph = {
     "@context": runtimeGraphContext(output),
     "@id": graphIdForRecord(recordId),
-    "@type": "sc:TagTeamGraph",
+    "@type": ["sc:TagTeamGraph"],
     "sc:graphForRecord": { "@id": recordId },
     "sc:graphIndex": index,
     "sc:runtimeKind": { "@id": runtime.kind === "tagteam" ? "sc:TagTeamRuntime" : "sc:DeterministicFallbackRuntime" },
@@ -572,7 +572,7 @@ function ontologyBridgeFromInvocation(diagnostics, ontologySet, ontologySupport,
 
 function ontologyBridgeReport(bridge, nodes) {
   return {
-    "@type": "sc:OntologyBridgeReport",
+    "@type": ["sc:OntologyBridgeReport"],
     "sc:ontologyOptionStatus": { "@id": bridge.status || "sc:OntologyUnknown" },
     "sc:ontologyOptionPassed": Boolean(bridge.optionPassed),
     "sc:ontologyOptionKey": "ontology",
@@ -1052,7 +1052,7 @@ function buildGraphBundle() {
   const bundle = {
     "@context": consolidatedGraphContext(graphs),
     "@id": "urn:semanticore:graph-bundle:browser-demo",
-    "@type": "sc:GraphBundle",
+    "@type": ["sc:GraphBundle"],
     "schema:name": "TagTeam JSON-LD graph bundle",
     "sc:dataset": { "@id": state.dataset?.["@id"] || "urn:semanticore:dataset:none" },
     "sc:mappingManifest": { "@id": (state.mappingManifest || buildMappingManifest())["@id"] },
@@ -1070,7 +1070,19 @@ function buildGraphBundle() {
 
 function stripGraphContext(graph) {
   const { "@context": _context, ...namedGraph } = graph;
-  return structuredClone(namedGraph);
+  const normalizedGraph = normalizeJsonLdTypes(structuredClone(namedGraph));
+  normalizedGraph["sc:contentHash"] = canonicalContentHash(normalizedGraph);
+  return normalizedGraph;
+}
+
+function normalizeJsonLdTypes(value) {
+  if (Array.isArray(value)) return value.map(normalizeJsonLdTypes);
+  if (!isObject(value)) return value;
+  const normalized = Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [key, normalizeJsonLdTypes(item)]),
+  );
+  if (typeof normalized["@type"] === "string") normalized["@type"] = [normalized["@type"]];
+  return normalized;
 }
 
 function consolidatedGraphContext(graphs) {

@@ -24,7 +24,7 @@ export function exportGraphBundle(input: EnrichedExportInput): string {
   const bundle = {
     "@context": consolidatedGraphContext(graphs),
     "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
-    "@type": "sc:GraphBundle",
+    "@type": ["sc:GraphBundle"],
     "schema:name": "TagTeam JSON-LD graph bundle",
     "sc:totalGraphs": graphs.length,
     "sc:totalRecords": collectRecords(input).length,
@@ -79,7 +79,19 @@ function collectGraphs(input: EnrichedExportInput): NamedGraph[] {
 
 function stripGraphContext(graph: NamedGraph): NamedGraph {
   const { "@context": _context, ...namedGraph } = graph;
-  return structuredClone(namedGraph) as NamedGraph;
+  const normalizedGraph = normalizeJsonLdTypes(structuredClone(namedGraph)) as Record<string, JsonValue>;
+  normalizedGraph["sc:contentHash"] = canonicalContentHash(normalizedGraph);
+  return normalizedGraph as unknown as NamedGraph;
+}
+
+function normalizeJsonLdTypes(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizeJsonLdTypes);
+  if (!isRecord(value)) return value;
+  const normalized = Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [key, normalizeJsonLdTypes(item)]),
+  );
+  if (typeof normalized["@type"] === "string") normalized["@type"] = [normalized["@type"]];
+  return normalized;
 }
 
 function ontologyMatchCountForGraph(graph: NamedGraph): number {

@@ -91,6 +91,8 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes('"sc:graphs": runGraphs()'), false);
   strictEqual(js.includes("assertValidDownload(kind, content, type)"), true);
   strictEqual(js.includes("JSON.parse(content)"), true);
+  strictEqual(js.includes('normalizedGraph["sc:contentHash"] = canonicalContentHash(normalizedGraph);'), true);
+  strictEqual(js.includes("normalizeJsonLdTypes"), true);
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {
