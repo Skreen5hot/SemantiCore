@@ -280,6 +280,21 @@
 
 ---
 
+## ADR-018: Expose Ontology Passing Evidence In Graph Output
+
+**Date:** 2026-05-13
+
+**Decision:** Each emitted TagTeam graph includes an `sc:ontologyBridge` report that states whether SemantiCore compiled and passed ontology content to TagTeam and how many ontology matches came back.
+
+**Context:** The workbench let users add local ontology TTL, but it was not clear whether that TTL reached TagTeam or whether TagTeam used it. TagTeam's documented integration shape is `OntologyTextTagger.fromTTL(ttl)` passed as `buildGraph(text, { ontology: tagger })`, so SemantiCore must expose that adapter boundary directly.
+
+**Consequences:**
+- Reviewers can distinguish ontology unavailable, disabled, empty, compiled-and-passed, and matched-zero cases.
+- `ontologyMatch*` terms are part of the graph context for downstream JSON-LD use.
+- A zero match count is not treated as an error; it is observable evidence for debugging ontology labels and TagTeam behavior.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

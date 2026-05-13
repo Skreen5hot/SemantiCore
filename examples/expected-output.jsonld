@@ -82,6 +82,23 @@
         "@id": "tagteam:is_subject_of",
         "@type": "@id"
       },
+      "ontologyMatch": {
+        "@container": "@set",
+        "@id": "tagteam:ontologyMatch"
+      },
+      "ontologyMatchConfidence": {
+        "@id": "tagteam:ontologyMatchConfidence",
+        "@type": "xsd:decimal"
+      },
+      "ontologyMatchEvidence": "tagteam:ontologyMatchEvidence",
+      "ontologyMatchForm": "tagteam:ontologyMatchForm",
+      "ontologyMatchIRI": {
+        "@id": "tagteam:ontologyMatchIRI",
+        "@type": "@id"
+      },
+      "ontologyMatchInflection": "tagteam:ontologyMatchInflection",
+      "ontologyMatchLabel": "tagteam:ontologyMatchLabel",
+      "ontologyMatchType": "tagteam:ontologyMatchType",
       "owl": "http://www.w3.org/2002/07/owl#",
       "prescribes": {
         "@id": "tagteam:prescribes",
@@ -111,6 +128,9 @@
       },
       "schema": "https://schema.org/",
       "tagteam": "https://tagteam.fandaws.org/ontology/",
+      "tagteam:classNominationStatus": {
+        "@type": "@id"
+      },
       "xsd": "http://www.w3.org/2001/XMLSchema#"
     },
     "@graph": [

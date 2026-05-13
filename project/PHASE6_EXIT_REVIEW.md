@@ -28,6 +28,7 @@ What changed:
 - Added an explicit TagTeam text source selector and persisted `sc:tagTeamSourcePropertyPath`.
 - Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
 - Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
+- Added `sc:ontologyBridge` graph diagnostics so reviewers can see whether local ontology TTL was passed to TagTeam and how many `ontologyMatch` annotations returned.
 
 Verification run before review:
 
@@ -66,6 +67,7 @@ Expected:
 - The Run panel exposes a TagTeam text source selector.
 - The default source path is `sc:source / schema:text`.
 - TagTeam Graphs output includes usable graph context mappings for TagTeam prefixes and relation terms.
+- Enriched graph output includes `sc:ontologyBridge`.
 
 Block if:
 
@@ -108,12 +110,26 @@ Expected:
 - `inst:` is defined.
 - `rdfs:` and `owl:` are defined.
 - `is_about` and `is_concretized_by` are mapped as IRI-valued properties.
+- `ontologyMatch` and `ontologyMatchIRI` are mapped.
 
 Block if:
 
 - TagTeam graph output contains compact IDs or predicates that cannot be expanded by a JSON-LD processor.
 
-### 5. Kernel Canonicalization
+### 5. Ontology Bridge Evidence
+
+Expected:
+
+- Each graph includes `sc:OntologyBridgeReport`.
+- The report includes `sc:ontologyOptionStatus`.
+- The report includes `sc:ontologyOptionPassed`.
+- The report includes `sc:ontologyMatchCount`.
+
+Block if:
+
+- A user cannot tell whether enabled ontology content was passed to TagTeam.
+
+### 6. Kernel Canonicalization
 
 Expected:
 
@@ -127,7 +143,7 @@ Block if:
 - Hashing imports filesystem, network, time, randomness, or environment state.
 - Canonicalization mutates caller input.
 
-### 6. Documented RDFC Gap
+### 7. Documented RDFC Gap
 
 Expected:
 
@@ -148,6 +164,7 @@ Do not approve Phase 6 if any of these are true:
 - Browser output still includes duplicate top-level convenience aliases.
 - TagTeam source text is selected by hidden heuristic instead of explicit source-path configuration.
 - TagTeam graph output has ghost prefixes or unmapped relation terms.
+- Ontology passing is hidden or impossible to inspect from JSON-LD output.
 - Content hashes are not SHA-256 over canonical bytes.
 - The RDFC-1.0 gap is hidden or misrepresented.
 - A server, database, CDN, or cloud dependency is introduced.
@@ -183,6 +200,10 @@ Commit reviewed:
 - [ ] TagTeam graph context defines `inst:`.
 - [ ] TagTeam graph context maps `is_about`.
 - [ ] TagTeam graph context maps `is_concretized_by`.
+- [ ] TagTeam graph context maps `ontologyMatch`.
+- [ ] Graph output includes `sc:OntologyBridgeReport`.
+- [ ] Graph output includes `sc:ontologyOptionStatus`.
+- [ ] Graph output includes `sc:ontologyMatchCount`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.

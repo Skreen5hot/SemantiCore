@@ -315,7 +315,8 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary, t
 }
 
 function buildRuntimeGraph(recordId, index, text, runtime) {
-  const output = runtime.buildGraph(text, buildTagTeamOptions());
+  const tagTeamOptionBundle = buildTagTeamOptions();
+  const output = runtime.buildGraph(text, tagTeamOptionBundle.options);
   const nodes = extractGraphNodes(output);
   const graph = {
     "@context": runtimeGraphContext(output),
@@ -328,6 +329,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   };
   const metadata = tagTeamMetadata(output);
   if (metadata) graph["sc:tagTeamMetadata"] = metadata;
+  graph["sc:ontologyBridge"] = ontologyBridgeReport(tagTeamOptionBundle.bridge, nodes);
   return {
     graph,
     warnings: contextCollisionWarnings(output, recordId),
@@ -472,15 +474,46 @@ function buildTagTeamOptions() {
     ontologyThreshold: 0.2,
     verbose: false,
   };
+  const bridge = {
+    status: "sc:OntologyDisabled",
+    optionPassed: false,
+    enabledOntologyCount: buildOntologySet().ontologies.filter((ontology) => ontology["sc:enabled"]).length,
+    ontologyContentBytes: 0,
+  };
   const tagTeam = window.TagTeam;
-  if (!el.useOntologies.checked || !tagTeam?.OntologyTextTagger?.fromTTL) return options;
+  if (!el.useOntologies.checked) return { options, bridge };
+  bridge.status = "sc:OntologyApiUnavailable";
+  if (!tagTeam?.OntologyTextTagger?.fromTTL) return { options, bridge };
   const ttl = enabledOntologyContent().join("\n\n");
-  if (!ttl.trim()) return options;
+  bridge.ontologyContentBytes = utf8Bytes(ttl).length;
+  bridge.status = ttl.trim() ? "sc:OntologyCompiledAndPassed" : "sc:NoEnabledOntologyContent";
+  if (!ttl.trim()) return { options, bridge };
   options.ontology = tagTeam.OntologyTextTagger.fromTTL(ttl, {
     ontologyThreshold: options.ontologyThreshold,
     verbose: options.verbose,
   });
-  return options;
+  bridge.optionPassed = true;
+  return { options, bridge };
+}
+
+function ontologyBridgeReport(bridge, nodes) {
+  return {
+    "@type": "sc:OntologyBridgeReport",
+    "sc:ontologyOptionStatus": { "@id": bridge.status || "sc:OntologyUnknown" },
+    "sc:ontologyOptionPassed": Boolean(bridge.optionPassed),
+    "sc:ontologyOptionKey": "ontology",
+    "sc:enabledOntologyCount": Number(bridge.enabledOntologyCount || 0),
+    "sc:ontologyContentBytes": Number(bridge.ontologyContentBytes || 0),
+    "sc:ontologyMatchCount": countOntologyMatches(nodes),
+  };
+}
+
+function countOntologyMatches(nodes) {
+  return nodes.reduce((count, node) => {
+    const matches = node.ontologyMatch || node["tagteam:ontologyMatch"];
+    if (Array.isArray(matches)) return count + matches.length;
+    return matches ? count + 1 : count;
+  }, 0);
 }
 
 function enabledOntologyContent() {
@@ -1363,6 +1396,15 @@ function tagTeamGraphContext() {
     isSpecifiedBy: { "@id": "tagteam:isSpecifiedBy", "@type": "@id" },
     inheres_in: { "@id": "tagteam:inheres_in", "@type": "@id" },
     has_text_value: "tagteam:has_text_value",
+    ontologyMatch: { "@id": "tagteam:ontologyMatch", "@container": "@set" },
+    ontologyMatchIRI: { "@id": "tagteam:ontologyMatchIRI", "@type": "@id" },
+    ontologyMatchConfidence: { "@id": "tagteam:ontologyMatchConfidence", "@type": "xsd:decimal" },
+    ontologyMatchEvidence: "tagteam:ontologyMatchEvidence",
+    ontologyMatchLabel: "tagteam:ontologyMatchLabel",
+    ontologyMatchType: "tagteam:ontologyMatchType",
+    ontologyMatchForm: "tagteam:ontologyMatchForm",
+    ontologyMatchInflection: "tagteam:ontologyMatchInflection",
+    "tagteam:classNominationStatus": { "@type": "@id" },
     ActSpecification: "tagteam:ActSpecification",
     Agent: "tagteam:Agent",
     DirectiveInformationContentEntity: "tagteam:DirectiveInformationContentEntity",
