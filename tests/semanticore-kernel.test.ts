@@ -146,6 +146,18 @@ test("TagTeam graph context maps TagTeam prefixes and relation terms", () => {
   deepStrictEqual(context?.Role, "tagteam:Role");
 });
 
+test("TagTeam metadata is preserved alongside named graph output", () => {
+  const result = enrichRecord(baseRecord(), baseConfig(), baseContextManifest(), baseOntologySet(), metadataRuntime());
+  const graph = !Array.isArray(result.graph) ? result.graph : null;
+  const metadata = graph?.["sc:tagTeamMetadata"] as Record<string, unknown> | undefined;
+  strictEqual(metadata?.entities, 2);
+  strictEqual(Array.isArray(metadata?.sentences), true);
+  const enrichment = result.record["sc:semanticEnrichment"];
+  const summary = isNode(enrichment) ? enrichment["sc:summary"] as Record<string, unknown> | undefined : undefined;
+  strictEqual(summary?.["sc:entityCount"], 2);
+  strictEqual(summary?.["sc:actCount"], 1);
+});
+
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);
@@ -253,6 +265,39 @@ function tagTeamContextRuntime(version = "7.0.0"): TagTeamRuntime {
             "rdfs:label": "Event: battlefiel",
           },
         ],
+      };
+    },
+  };
+}
+
+function metadataRuntime(version = "7.0.0"): TagTeamRuntime {
+  return {
+    version,
+    buildGraph() {
+      return {
+        "@graph": [
+          {
+            "@id": "inst:Agent_1",
+            "@type": ["cco:Agent"],
+            "rdfs:label": "agency",
+          },
+          {
+            "@id": "inst:Process_1",
+            "@type": ["obo:BFO_0000015"],
+            "rdfs:label": "publish",
+          },
+        ],
+        "_metadata": {
+          entities: 2,
+          acts: 1,
+          roles: 0,
+          sentences: [
+            {
+              sentenceIndex: 0,
+              parsingActId: "inst:ParsingAct_1",
+            },
+          ],
+        },
       };
     },
   };

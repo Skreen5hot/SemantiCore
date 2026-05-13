@@ -11,6 +11,15 @@ export interface TagTeamLike {
 export interface TagTeamRuntimeAdapterOptions {
   fallbackVersion?: string;
   useOntologies?: boolean;
+  onInvocation?: (diagnostics: TagTeamRuntimeInvocationDiagnostics) => void;
+}
+
+export interface TagTeamRuntimeInvocationDiagnostics {
+  ontologyOptionPassed: boolean;
+  enabledOntologyCount: number;
+  compiledOntologyCount: number;
+  ontologyContentBytes: number;
+  tagTeamOptionKeys: string[];
 }
 
 export function createTagTeamRuntimeAdapter(
@@ -20,7 +29,9 @@ export function createTagTeamRuntimeAdapter(
   return {
     version: tagTeam.version ?? adapterOptions.fallbackVersion ?? "unknown",
     buildGraph(sourceText: string, options: TagTeamOptions, ontologySet: OntologySet): JsonLdNode | JsonLdNode[] {
-      const tagTeamOptions = buildTagTeamOptions(tagTeam, options, ontologySet, adapterOptions.useOntologies !== false);
+      const result = buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, adapterOptions.useOntologies !== false);
+      adapterOptions.onInvocation?.(result.diagnostics);
+      const tagTeamOptions = result.options;
       const output = tagTeam.buildGraph(sourceText, tagTeamOptions);
       return normalizeTagTeamOutput(output);
     },
@@ -33,17 +44,40 @@ export function buildTagTeamOptions(
   ontologySet: OntologySet,
   useOntologies: boolean,
 ): Record<string, unknown> {
+  return buildTagTeamOptionsWithDiagnostics(tagTeam, options, ontologySet, useOntologies).options;
+}
+
+export function buildTagTeamOptionsWithDiagnostics(
+  tagTeam: TagTeamLike,
+  options: TagTeamOptions,
+  ontologySet: OntologySet,
+  useOntologies: boolean,
+): { options: Record<string, unknown>; diagnostics: TagTeamRuntimeInvocationDiagnostics } {
   const tagTeamOptions: Record<string, unknown> = {
     ontologyThreshold: options["sc:ontologyThreshold"] ?? 0,
     verbose: options["sc:verbose"] ?? false,
   };
+  for (const key of ["context", "extractEntities", "extractActs", "detectRoles", "useLegacy"]) {
+    if (Object.prototype.hasOwnProperty.call(options, key)) {
+      tagTeamOptions[key] = options[key];
+    }
+  }
 
   const ontologyContents = useOntologies ? enabledOntologyContents(ontologySet) : [];
   if (ontologyContents.length > 0 && tagTeam.OntologyTextTagger?.fromTTL) {
     tagTeamOptions.ontology = compileOntologyTaggers(tagTeam, ontologyContents);
   }
 
-  return tagTeamOptions;
+  return {
+    options: tagTeamOptions,
+    diagnostics: {
+      ontologyOptionPassed: Boolean(tagTeamOptions.ontology),
+      enabledOntologyCount: ontologyContents.length,
+      compiledOntologyCount: Boolean(tagTeamOptions.ontology) ? ontologyContents.length : 0,
+      ontologyContentBytes: ontologyContents.reduce((total, content) => total + new TextEncoder().encode(content).length, 0),
+      tagTeamOptionKeys: Object.keys(tagTeamOptions).sort(),
+    },
+  };
 }
 
 export function normalizeTagTeamOutput(output: unknown): JsonLdNode | JsonLdNode[] {
@@ -79,6 +113,14 @@ function mergeOntologyTaggers(taggers: unknown[]): unknown {
         });
         return summary;
       }, { taggerCount: taggers.length });
+    },
+    emitClauseAuthorityMatch(...args: unknown[]): unknown[] {
+      return taggers.flatMap((tagger) => {
+        const candidate = tagger as { emitClauseAuthorityMatch?: (...values: unknown[]) => unknown };
+        if (typeof candidate.emitClauseAuthorityMatch !== "function") return [];
+        const result = candidate.emitClauseAuthorityMatch(...args);
+        return Array.isArray(result) ? result : result ? [result] : [];
+      });
     },
   };
 }

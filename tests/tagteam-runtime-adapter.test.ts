@@ -120,6 +120,61 @@ test("TagTeam runtime adapter compiles enabled ontology TTL documents independen
   ]);
 });
 
+test("merged ontology tagger delegates clause authority matches", () => {
+  const runtime = createTagTeamRuntimeAdapter({
+    version: "7.0.0",
+    OntologyTextTagger: {
+      fromTTL(ttl) {
+        return {
+          emitClauseAuthorityMatch() {
+            return { ontologyMatchIRI: ttl.includes("Firmware") ? "urn:firmware" : "urn:drone" };
+          },
+        };
+      },
+    },
+    buildGraph(_sourceText, options) {
+      const ontology = options?.ontology as { emitClauseAuthorityMatch?: () => unknown[] };
+      return {
+        "@id": "urn:tagteam:authority",
+        "@type": "tagteam:Entity",
+        ontologyMatch: ontology.emitClauseAuthorityMatch?.() ?? [],
+      };
+    },
+  });
+
+  const graph = runtime.buildGraph("Firmware update.", tagTeamOptions(), multiOntologySet());
+  if (Array.isArray(graph)) throw new Error("Expected single graph node.");
+  deepStrictEqual(graph.ontologyMatch, [
+    { ontologyMatchIRI: "urn:firmware" },
+    { ontologyMatchIRI: "urn:drone" },
+  ]);
+});
+
+test("TagTeam runtime adapter forwards supported TagTeam options", () => {
+  let received: Record<string, unknown> | undefined;
+  const runtime = createTagTeamRuntimeAdapter({
+    version: "7.0.0",
+    buildGraph(_sourceText, options) {
+      received = options;
+      return { "@id": "urn:tagteam:options", "@type": "tagteam:Entity" };
+    },
+  });
+
+  runtime.buildGraph("Options text.", {
+    ...tagTeamOptions(),
+    context: "test-context",
+    extractEntities: false,
+    extractActs: true,
+    detectRoles: false,
+    useLegacy: true,
+  }, ontologySet());
+  strictEqual(received?.context, "test-context");
+  strictEqual(received?.extractEntities, false);
+  strictEqual(received?.extractActs, true);
+  strictEqual(received?.detectRoles, false);
+  strictEqual(received?.useLegacy, true);
+});
+
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);

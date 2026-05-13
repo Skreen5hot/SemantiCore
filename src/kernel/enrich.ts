@@ -158,7 +158,7 @@ function makeEnrichment(input: EnrichmentInput): TagTeamEnrichment {
 }
 
 function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph {
-  return {
+  const graph: NamedGraph = {
     "@context": graphContextFor(tagTeamOutput),
     "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
     "@type": "sc:TagTeamGraph",
@@ -166,6 +166,11 @@ function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNo
     "sc:graphIndex": index,
     "@graph": extractGraphNodes(tagTeamOutput),
   };
+  const metadata = extractTagTeamMetadata(tagTeamOutput);
+  if (metadata !== undefined) {
+    graph["sc:tagTeamMetadata"] = metadata;
+  }
+  return graph;
 }
 
 function graphContextFor(tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph["@context"] {
@@ -185,35 +190,107 @@ function extractGraphNodes(tagTeamOutput: JsonLdNode | JsonLdNode[]): JsonLdNode
   return [cloneNode(tagTeamOutput)];
 }
 
-function summarizeGraph(graph: NamedGraph): TagTeamEnrichment["sc:summary"] {
-  let entityCount = 0;
-  let actCount = 0;
-  let roleCount = 0;
-  let deonticDetected = false;
-
-  for (const node of graph["@graph"]) {
-    const types = collectTypes(node);
-    if (types.some((type) => type.includes("Entity") || type.endsWith(":Entity"))) {
-      entityCount++;
-    }
-    if (types.some((type) => type.includes("Act") || type.endsWith(":Act"))) {
-      actCount++;
-    }
-    if (types.some((type) => type.includes("Role") || type.endsWith(":Role"))) {
-      roleCount++;
-    }
-    if (types.some((type) => type.includes("Deontic")) || node["tagteam:deontic"] === true) {
-      deonticDetected = true;
-    }
+function extractTagTeamMetadata(tagTeamOutput: JsonLdNode | JsonLdNode[]): JsonLdNode["sc:tagTeamMetadata"] | undefined {
+  if (Array.isArray(tagTeamOutput)) return undefined;
+  const metadata = tagTeamOutput["_metadata"];
+  if (metadata !== null && typeof metadata === "object") {
+    return structuredClone(metadata) as JsonLdNode["sc:tagTeamMetadata"];
   }
+  return undefined;
+}
 
+function summarizeGraph(graph: NamedGraph): TagTeamEnrichment["sc:summary"] {
+  const metadata = graph["sc:tagTeamMetadata"];
+  if (metadata !== null && typeof metadata === "object" && !Array.isArray(metadata)) {
+    return {
+      "@type": "sc:TagTeamSummary",
+      "sc:entityCount": numericMetadata(metadata, "entities") ?? countEntityNodes(graph),
+      "sc:actCount": numericMetadata(metadata, "acts") ?? countActNodes(graph),
+      "sc:roleCount": numericMetadata(metadata, "roles") ?? countRoleNodes(graph),
+      "sc:deonticDetected": graph["@graph"].some(hasDeonticSignal),
+    };
+  }
   return {
     "@type": "sc:TagTeamSummary",
-    "sc:entityCount": entityCount,
-    "sc:actCount": actCount,
-    "sc:roleCount": roleCount,
-    "sc:deonticDetected": deonticDetected,
+    "sc:entityCount": countEntityNodes(graph),
+    "sc:actCount": countActNodes(graph),
+    "sc:roleCount": countRoleNodes(graph),
+    "sc:deonticDetected": graph["@graph"].some(hasDeonticSignal),
   };
+}
+
+function countEntityNodes(graph: NamedGraph): number {
+  let entityCount = 0;
+  for (const node of graph["@graph"]) {
+    const types = collectTypes(node);
+    if (types.some(isEntityType)) {
+      entityCount++;
+    }
+  }
+  return entityCount;
+}
+
+function countActNodes(graph: NamedGraph): number {
+  let actCount = 0;
+  for (const node of graph["@graph"]) {
+    const types = collectTypes(node);
+    if (types.some(isActType)) {
+      actCount++;
+    }
+  }
+  return actCount;
+}
+
+function countRoleNodes(graph: NamedGraph): number {
+  let roleCount = 0;
+  for (const node of graph["@graph"]) {
+    const types = collectTypes(node);
+    if (types.some(isRoleType)) {
+      roleCount++;
+    }
+  }
+  return roleCount;
+}
+
+function isEntityType(type: string): boolean {
+  return [
+    "tagteam:Entity",
+    "Entity",
+    "Organization",
+    "Person",
+    "Agent",
+    "MaterialEntity",
+    "IndependentContinuant",
+    "cco:Agent",
+    "cco:Person",
+    "obo:BFO_0000040",
+  ].includes(type);
+}
+
+function isActType(type: string): boolean {
+  return [
+    "tagteam:Act",
+    "tagteam:VerbPhrase",
+    "IntentionalAct",
+    "ActSpecification",
+    "Process",
+    "bfo:Process",
+    "obo:BFO_0000015",
+  ].includes(type);
+}
+
+function isRoleType(type: string): boolean {
+  return type === "Role" || type === "cco:Role" || type === "obo:BFO_0000023" || type.endsWith("Role");
+}
+
+function hasDeonticSignal(node: JsonLdNode): boolean {
+  const types = collectTypes(node);
+  return types.some((type) => type.includes("Deontic")) || node["tagteam:deontic"] === true || node["tagteam:deonticCategory"] !== undefined;
+}
+
+function numericMetadata(metadata: Record<string, unknown>, key: string): number | undefined {
+  const value = metadata[key];
+  return typeof value === "number" ? value : undefined;
 }
 
 function collectTypes(node: JsonLdNode): string[] {

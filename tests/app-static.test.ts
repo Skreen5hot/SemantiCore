@@ -81,8 +81,10 @@ test("GitHub Pages app emits a usable TagTeam graph context", () => {
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {
+  strictEqual(js.includes('import { createTagTeamRuntimeAdapter } from "./dist/adapters/integration/tagteam-runtime.js";'), true);
   strictEqual(js.includes("createTagTeamRuntimeAdapter"), true);
-  strictEqual(js.includes("buildTagTeamRuntimeOptions"), true);
+  strictEqual(js.includes("function createTagTeamRuntimeAdapter"), false);
+  strictEqual(js.includes("options.ontology ="), false);
   strictEqual(js.includes("sc:OntologyBridgeReport"), true);
   strictEqual(js.includes("sc:ontologyOptionPassed"), true);
   strictEqual(js.includes("sc:ontologyOptionStatus"), true);
