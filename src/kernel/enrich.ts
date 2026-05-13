@@ -160,7 +160,7 @@ function makeEnrichment(input: EnrichmentInput): TagTeamEnrichment {
 function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph {
   const graph: NamedGraph = {
     "@context": graphContextFor(tagTeamOutput),
-    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+    "@id": graphIdForRecord(recordId, index),
     "@type": "sc:TagTeamGraph",
     "sc:graphForRecord": iri(recordId),
     "sc:graphIndex": index,
@@ -171,6 +171,12 @@ function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNo
     graph["sc:tagTeamMetadata"] = metadata;
   }
   return graph;
+}
+
+function graphIdForRecord(recordId: string, index: number): string {
+  const prefix = "urn:semanticore:record:";
+  const fragment = recordId.startsWith(prefix) ? recordId.slice(prefix.length) : stableFragment(recordId);
+  return index === 0 ? `urn:semanticore:graph:${fragment}` : `urn:semanticore:graph:${fragment}:${index}`;
 }
 
 function graphContextFor(tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph["@context"] {

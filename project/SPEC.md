@@ -493,7 +493,7 @@ TagTeam output MUST be attached as a JSON-LD named graph resource. It MUST NOT b
     "bfo": "http://purl.obolibrary.org/obo/",
     "cco": "https://www.commoncoreontologies.org/"
   },
-  "@id": "urn:semanticore:graph:example:0:0",
+  "@id": "urn:semanticore:graph:example:0",
   "@type": "sc:TagTeamGraph",
   "sc:graphForRecord": { "@id": "urn:semanticore:record:example:0" },
   "sc:graphIndex": 0,
@@ -544,7 +544,7 @@ Each enriched record preserves source data and appends enrichment metadata.
       ]
     },
     "sc:tagTeamVersion": "7.0.0",
-    "sc:namedGraph": { "@id": "urn:semanticore:graph:example:0:0" },
+    "sc:namedGraph": { "@id": "urn:semanticore:graph:example:0" },
     "sc:summary": {
       "@type": "sc:TagTeamSummary",
       "sc:entityCount": 2,

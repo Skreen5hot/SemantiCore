@@ -136,6 +136,10 @@ test("export utilities produce graph bundle and required CSV summary columns", (
   strictEqual(graphBundle.includes('"@type": "sc:GraphBundle"'), true);
   const parsedGraphBundle = JSON.parse(graphBundle);
   strictEqual(Array.isArray(parsedGraphBundle["@graph"]), true);
+  strictEqual(parsedGraphBundle["sc:totalGraphs"], 1);
+  strictEqual(parsedGraphBundle["sc:totalRecords"], 1);
+  strictEqual(parsedGraphBundle["sc:aggregateOntologyMatchCount"], 1);
+  strictEqual(String(parsedGraphBundle["sc:contentHash"]).startsWith("sha256:"), true);
   const bundledGraph = parsedGraphBundle["@graph"][0];
   strictEqual(bundledGraph["@context"], undefined);
   strictEqual(bundledGraph["@id"], "urn:semanticore:graph:export:0");

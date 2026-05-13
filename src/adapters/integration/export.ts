@@ -1,6 +1,6 @@
 import type { EnrichedExportInput } from "./types.js";
 import type { JsonValue, NamedGraph, SourceRecord, WarningResource } from "../../kernel/index.js";
-import { stableStringify } from "../../kernel/index.js";
+import { canonicalContentHash, stableStringify } from "../../kernel/index.js";
 import { TAGTEAM_GRAPH_CONTEXT } from "../../kernel/vocabulary.js";
 
 const CSV_COLUMNS = [
@@ -21,15 +21,17 @@ export function exportCanonicalJsonLd(input: unknown): string {
 
 export function exportGraphBundle(input: EnrichedExportInput): string {
   const graphs = collectGraphs(input);
-  return stableStringify(
-    {
-      "@context": consolidatedGraphContext(graphs),
-      "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
-      "@type": "sc:GraphBundle",
-      "@graph": graphs.map(stripGraphContext),
-    },
-    true,
-  );
+  const bundle = {
+    "@context": consolidatedGraphContext(graphs),
+    "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
+    "@type": "sc:GraphBundle",
+    "schema:name": "TagTeam JSON-LD graph bundle",
+    "sc:totalGraphs": graphs.length,
+    "sc:totalRecords": collectRecords(input).length,
+    "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),
+    "@graph": graphs.map(stripGraphContext),
+  };
+  return stableStringify({ ...bundle, "sc:contentHash": canonicalContentHash(bundle) }, true);
 }
 
 export function exportCsvSummary(input: EnrichedExportInput): string {
@@ -80,6 +82,27 @@ function stripGraphContext(graph: NamedGraph): NamedGraph {
   return structuredClone(namedGraph) as NamedGraph;
 }
 
+function ontologyMatchCountForGraph(graph: NamedGraph): number {
+  const bridge = graph["sc:ontologyBridge"];
+  const bridgeCount = Number(isRecord(bridge) ? bridge["sc:ontologyMatchCount"] : undefined);
+  if (Number.isFinite(bridgeCount)) return bridgeCount;
+  return countOntologyMatches(graph["@graph"]);
+}
+
+function countOntologyMatches(value: unknown): number {
+  if (Array.isArray(value)) return value.reduce((total, item) => total + countOntologyMatches(item), 0);
+  if (!isRecord(value)) return 0;
+  return Object.entries(value).reduce((total, [key, item]) => {
+    const current = key === "ontologyMatch" || key === "tagteam:ontologyMatch" ? countMatchValues(item) : 0;
+    return total + current + countOntologyMatches(item);
+  }, 0);
+}
+
+function countMatchValues(value: unknown): number {
+  if (Array.isArray(value)) return value.length;
+  return value ? 1 : 0;
+}
+
 function consolidatedGraphContext(graphs: NamedGraph[]): JsonValue {
   return graphs.reduce<JsonValue>((context, graph) => mergeContexts(context, graph["@context"]), TAGTEAM_GRAPH_CONTEXT);
 }
@@ -102,6 +125,10 @@ function mergeContexts(baseContext: JsonValue, nextContext: JsonValue | undefine
 }
 
 function isPlainObject(value: JsonValue): value is Record<string, JsonValue> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 

@@ -30,6 +30,8 @@ const state = {
   selectedGraphIndex: 0,
 };
 
+const activeDownloads = new Set();
+
 const el = {
   formatSelect: document.querySelector("#formatSelect"),
   fileInput: document.querySelector("#fileInput"),
@@ -173,10 +175,23 @@ document.querySelectorAll("[data-output]").forEach((button) => {
 document.querySelectorAll("[data-download]").forEach((button) => {
   button.addEventListener("click", () => {
     const kind = button.dataset.download;
-    const content = exportFor(kind);
-    const extension = kind === "csv" ? "csv" : "jsonld";
-    const type = kind === "csv" ? "text/csv" : "application/ld+json";
-    downloadText(`semanticore-${kind}.${extension}`, content, type);
+    if (activeDownloads.has(kind)) return;
+    activeDownloads.add(kind);
+    button.disabled = true;
+    try {
+      const content = exportFor(kind);
+      const extension = kind === "csv" ? "csv" : "jsonld";
+      const type = kind === "csv" ? "text/csv" : "application/ld+json";
+      assertValidDownload(kind, content, type);
+      downloadText(`semanticore-${kind}.${extension}`, content, type);
+    } catch (error) {
+      el.inputStatus.textContent = `Could not export ${kind}: ${error.message}`;
+    } finally {
+      setTimeout(() => {
+        activeDownloads.delete(kind);
+        button.disabled = false;
+      }, 0);
+    }
   });
 });
 
@@ -331,7 +346,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   const nodes = extractGraphNodes(output);
   const graph = {
     "@context": runtimeGraphContext(output),
-    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+    "@id": graphIdForRecord(recordId),
     "@type": "sc:TagTeamGraph",
     "sc:graphForRecord": { "@id": recordId },
     "sc:graphIndex": index,
@@ -345,6 +360,13 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
     graph,
     warnings: contextCollisionWarnings(output, recordId),
   };
+}
+
+function graphIdForRecord(recordId) {
+  const prefix = "urn:semanticore:record:";
+  const value = String(recordId || "");
+  if (value.startsWith(prefix)) return `urn:semanticore:graph:${value.slice(prefix.length)}`;
+  return `urn:semanticore:graph:${stableFragment(value)}`;
 }
 
 function buildFallbackNodes(text) {
@@ -1027,13 +1049,23 @@ function exportFor(kind) {
 
 function buildGraphBundle() {
   const graphs = runGraphs();
-  return {
+  const bundle = {
     "@context": consolidatedGraphContext(graphs),
     "@id": "urn:semanticore:graph-bundle:browser-demo",
     "@type": "sc:GraphBundle",
     "schema:name": "TagTeam JSON-LD graph bundle",
+    "sc:dataset": { "@id": state.dataset?.["@id"] || "urn:semanticore:dataset:none" },
+    "sc:mappingManifest": { "@id": (state.mappingManifest || buildMappingManifest())["@id"] },
+    "sc:ontologySet": { "@id": (state.ontologySet || defaultOntologySet())["@id"] },
+    "sc:contextManifest": { "@id": (state.contextManifest || buildContextManifest())["@id"] },
+    "sc:tagTeamVersion": state.run?.["sc:runtime"]?.["sc:tagTeamVersion"] || state.runtime?.["sc:tagTeamVersion"] || fallbackRuntimeVersion,
+    "sc:totalGraphs": graphs.length,
+    "sc:totalRecords": runRecords().length,
+    "sc:aggregateOntologyMatchCount": graphs.reduce((total, graph) => total + ontologyMatchCountForGraph(graph), 0),
     "@graph": graphs.map(stripGraphContext),
   };
+  bundle["sc:contentHash"] = canonicalContentHash(bundle);
+  return bundle;
 }
 
 function stripGraphContext(graph) {
@@ -1123,6 +1155,15 @@ function downloadText(filename, content, type) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+function assertValidDownload(kind, content, type) {
+  if (!type.includes("json")) return;
+  try {
+    JSON.parse(content);
+  } catch (error) {
+    throw new Error(`${kind} JSON-LD is not valid JSON (${error.message})`);
+  }
 }
 
 async function saveSession() {

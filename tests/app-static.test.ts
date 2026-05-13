@@ -89,6 +89,8 @@ test("GitHub Pages app emits a de-duplicated TagTeam graph context", () => {
   strictEqual(js.includes("stripGraphContext"), true);
   strictEqual(js.includes('const { "@context": _context, ...namedGraph } = graph;'), true);
   strictEqual(js.includes('"sc:graphs": runGraphs()'), false);
+  strictEqual(js.includes("assertValidDownload(kind, content, type)"), true);
+  strictEqual(js.includes("JSON.parse(content)"), true);
 });
 
 test("GitHub Pages app reports ontology bridge status per graph", () => {
