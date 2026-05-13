@@ -30,6 +30,7 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Run Enrichment"), true);
   strictEqual(html.includes("Mapping manifest JSON-LD"), true);
   strictEqual(html.includes("CSV Summary"), true);
+  strictEqual(html.includes("Selected TagTeam Graph"), true);
 });
 
 test("GitHub Pages app advertises Phase 6 status", () => {
@@ -55,6 +56,14 @@ test("GitHub Pages app exposes visible Phase 5 runtime controls", () => {
   strictEqual(js.includes("fromTTL"), true);
   strictEqual(js.includes("sc:TagTeamVersionMismatch"), true);
   strictEqual(js.includes("sc:ContextCollision"), true);
+});
+
+test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
+  strictEqual(html.includes("TagTeam Output"), true);
+  strictEqual(html.includes("TagTeam Graphs"), true);
+  strictEqual(js.includes("sc:tagTeamMetadata"), true);
+  strictEqual(js.includes("countGraphEntities"), true);
+  strictEqual(js.includes("renderSelectedGraph"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 6 canonical hash output", () => {

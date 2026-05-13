@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase6">
+  <link rel="stylesheet" href="./styles.css?v=phase6-graph">
 </head>
 <body>
   <header class="topbar">
@@ -243,11 +243,19 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       </div>
 
       <section class="output-panel" aria-label="Output inspector">
+        <section class="graph-focus" aria-labelledby="graph-focus-title">
+          <div>
+            <p class="step">TagTeam Output</p>
+            <h2 id="graph-focus-title">Selected TagTeam Graph</h2>
+          </div>
+          <p id="graphFocusSummary" class="muted">Run enrichment to inspect the first TagTeam graph directly.</p>
+          <pre id="selectedGraphPreview"></pre>
+        </section>
         <div class="output-toolbar">
           <div class="tabs" role="tablist" aria-label="Output views">
             <button class="active" type="button" data-output="dataset">Dataset</button>
             <button type="button" data-output="enriched">Enriched JSON-LD</button>
-            <button type="button" data-output="graphs">Graphs</button>
+            <button type="button" data-output="graphs">TagTeam Graphs</button>
             <button type="button" data-output="warnings">Warnings</button>
             <button type="button" data-output="csv">CSV Summary</button>
             <button type="button" data-output="hashes">Hashes</button>
@@ -263,6 +271,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase6" type="module"></script>
+  <script src="./main.js?v=phase6-graph" type="module"></script>
 </body>
 </html>

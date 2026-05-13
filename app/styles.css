@@ -402,6 +402,25 @@ td {
   padding: 12px;
 }
 
+.graph-focus {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 14px;
+}
+
+.graph-focus h2 {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+}
+
+#selectedGraphPreview {
+  max-height: 360px;
+}
+
 .output-toolbar {
   justify-content: space-between;
   flex-wrap: wrap;

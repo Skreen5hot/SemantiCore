@@ -46,6 +46,8 @@ const el = {
   sourcePath: document.querySelector("#sourcePath"),
   resultsBody: document.querySelector("#resultsBody"),
   outputPreview: document.querySelector("#outputPreview"),
+  graphFocusSummary: document.querySelector("#graphFocusSummary"),
+  selectedGraphPreview: document.querySelector("#selectedGraphPreview"),
   saveSession: document.querySelector("#saveSession"),
   restoreSession: document.querySelector("#restoreSession"),
   clearSession: document.querySelector("#clearSession"),
@@ -297,16 +299,19 @@ function makeEnrichment(recordId, index, status, sourceText, graphId, summary, t
 function buildRuntimeGraph(recordId, index, text, runtime) {
   const output = runtime.buildGraph(text, buildTagTeamOptions());
   const nodes = extractGraphNodes(output);
+  const graph = {
+    "@context": coreContext(),
+    "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
+    "@type": "sc:TagTeamGraph",
+    "sc:graphForRecord": { "@id": recordId },
+    "sc:graphIndex": index,
+    "sc:runtimeKind": { "@id": runtime.kind === "tagteam" ? "sc:TagTeamRuntime" : "sc:DeterministicFallbackRuntime" },
+    "@graph": nodes,
+  };
+  const metadata = tagTeamMetadata(output);
+  if (metadata) graph["sc:tagTeamMetadata"] = metadata;
   return {
-    graph: {
-      "@context": coreContext(),
-      "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
-      "@type": "sc:TagTeamGraph",
-      "sc:graphForRecord": { "@id": recordId },
-      "sc:graphIndex": index,
-      "sc:runtimeKind": { "@id": runtime.kind === "tagteam" ? "sc:TagTeamRuntime" : "sc:DeterministicFallbackRuntime" },
-      "@graph": nodes,
-    },
+    graph,
     warnings: contextCollisionWarnings(output, recordId),
   };
 }
@@ -336,13 +341,55 @@ function buildFallbackNodes(text) {
 }
 
 function summarizeGraph(graph) {
+  const metadata = graph["sc:tagTeamMetadata"];
+  if (metadata) {
+    return {
+      "@type": "sc:TagTeamSummary",
+      "sc:entityCount": Number(metadata.entities || countGraphEntities(graph)),
+      "sc:actCount": Number(metadata.acts || countGraphActs(graph)),
+      "sc:roleCount": Number(metadata.roles || 0),
+      "sc:deonticDetected": graph["@graph"].some((node) => Boolean(node["tagteam:deontic"] || node["tagteam:deonticCategory"] || node["tagteam:modalMarker"])),
+    };
+  }
   return {
     "@type": "sc:TagTeamSummary",
-    "sc:entityCount": graph["@graph"].filter((node) => node["@type"] === "tagteam:Entity").length,
-    "sc:actCount": graph["@graph"].filter((node) => Array.isArray(node["@type"]) && node["@type"].includes("tagteam:Act")).length,
+    "sc:entityCount": countGraphEntities(graph),
+    "sc:actCount": countGraphActs(graph),
     "sc:roleCount": 0,
-    "sc:deonticDetected": graph["@graph"].some((node) => node["tagteam:deontic"] === true),
+    "sc:deonticDetected": graph["@graph"].some((node) => Boolean(node["tagteam:deontic"] || node["tagteam:deonticCategory"] || node["tagteam:modalMarker"])),
   };
+}
+
+function countGraphEntities(graph) {
+  return graph["@graph"].filter((node) => graphTypes(node).some((type) =>
+    type === "tagteam:Entity" ||
+    type === "tagteam:DiscourseReferent" ||
+    type === "Organization" ||
+    type === "Entity"
+  )).length;
+}
+
+function countGraphActs(graph) {
+  return graph["@graph"].filter((node) => graphTypes(node).some((type) =>
+    type === "tagteam:Act" ||
+    type === "tagteam:VerbPhrase" ||
+    type === "IntentionalAct" ||
+    type === "Obligation" ||
+    type === "DirectiveInformationContentEntity"
+  )).length;
+}
+
+function graphTypes(node) {
+  const type = node["@type"];
+  if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
+  return typeof type === "string" ? [type] : [];
+}
+
+function tagTeamMetadata(output) {
+  if (isObject(output) && isObject(output._metadata)) {
+    return structuredClone(output._metadata);
+  }
+  return null;
 }
 
 function extractGraphNodes(tagTeamOutput) {
@@ -622,6 +669,7 @@ function renderAll() {
   renderSession();
   renderRuntime();
   renderResults();
+  renderSelectedGraph();
   renderOutput();
 }
 
@@ -716,6 +764,23 @@ function renderOutput() {
   el.outputPreview.textContent = exportFor(state.outputView);
 }
 
+function renderSelectedGraph() {
+  const graph = runGraphs()[0];
+  if (!graph) {
+    el.graphFocusSummary.textContent = "Run enrichment to inspect the first TagTeam graph directly.";
+    el.selectedGraphPreview.textContent = "";
+    return;
+  }
+  const metadata = graph["sc:tagTeamMetadata"] || {};
+  const nodes = Array.isArray(graph["@graph"]) ? graph["@graph"].length : 0;
+  const runtimeKind = graph["sc:runtimeKind"]?.["@id"] || "sc:UnknownRuntime";
+  const recordId = graph["sc:graphForRecord"]?.["@id"] || "unknown record";
+  const entityCount = metadata.entities ?? countGraphEntities(graph);
+  const actCount = metadata.acts ?? countGraphActs(graph);
+  el.graphFocusSummary.textContent = `${recordId} | ${runtimeKind} | ${nodes} graph node(s), ${entityCount} entit(y/ies), ${actCount} act(s).`;
+  el.selectedGraphPreview.textContent = stableStringify(graph, 2);
+}
+
 function exportFor(kind) {
   if (kind === "dataset") return stableStringify(state.dataset || {}, 2);
   if (kind === "enriched" || kind === "jsonld") return stableStringify(state.run || {}, 2);
@@ -724,6 +789,7 @@ function exportFor(kind) {
       "@context": coreContext(),
       "@id": "urn:semanticore:graph-bundle:browser-demo",
       "@type": "sc:GraphBundle",
+      "schema:name": "TagTeam JSON-LD graph bundle",
       "sc:graphs": runGraphs(),
     }, 2);
   }
@@ -747,6 +813,7 @@ function canonicalHashReport() {
       "@context": coreContext(),
       "@id": "urn:semanticore:graph-bundle:browser-demo",
       "@type": "sc:GraphBundle",
+      "schema:name": "TagTeam JSON-LD graph bundle",
       "sc:graphs": runGraphs(),
     }, "urn:semanticore:graph-bundle:none"),
     "sc:warnings": {
