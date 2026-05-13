@@ -12,7 +12,7 @@ import type {
   WarningResource,
   ContextManifest,
 } from "./types.js";
-import { CORE_CONTEXT, iri, Status, WarningCode } from "./vocabulary.js";
+import { CORE_CONTEXT, iri, Status, TAGTEAM_GRAPH_CONTEXT, WarningCode } from "./vocabulary.js";
 import { evaluateTagTeamVersion } from "./version.js";
 import { makeWarning, stableFragment } from "./warnings.js";
 
@@ -159,13 +159,20 @@ function makeEnrichment(input: EnrichmentInput): TagTeamEnrichment {
 
 function makeNamedGraph(recordId: string, index: number, tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph {
   return {
-    "@context": CORE_CONTEXT,
+    "@context": graphContextFor(tagTeamOutput),
     "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
     "@type": "sc:TagTeamGraph",
     "sc:graphForRecord": iri(recordId),
     "sc:graphIndex": index,
     "@graph": extractGraphNodes(tagTeamOutput),
   };
+}
+
+function graphContextFor(tagTeamOutput: JsonLdNode | JsonLdNode[]): NamedGraph["@context"] {
+  if (!Array.isArray(tagTeamOutput) && tagTeamOutput["@context"] !== undefined) {
+    return [TAGTEAM_GRAPH_CONTEXT, structuredClone(tagTeamOutput["@context"])] as NamedGraph["@context"];
+  }
+  return TAGTEAM_GRAPH_CONTEXT;
 }
 
 function extractGraphNodes(tagTeamOutput: JsonLdNode | JsonLdNode[]): JsonLdNode[] {

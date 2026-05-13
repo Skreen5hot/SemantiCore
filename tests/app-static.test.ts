@@ -66,6 +66,15 @@ test("GitHub Pages app exposes direct TagTeam graph inspection", () => {
   strictEqual(js.includes("renderSelectedGraph"), true);
 });
 
+test("GitHub Pages app emits a usable TagTeam graph context", () => {
+  strictEqual(js.includes('inst: "urn:tagteam:instance:"'), true);
+  strictEqual(js.includes('rdfs: "http://www.w3.org/2000/01/rdf-schema#"'), true);
+  strictEqual(js.includes('owl: "http://www.w3.org/2002/07/owl#"'), true);
+  strictEqual(js.includes('is_about: { "@id": "tagteam:is_about", "@type": "@id" }'), true);
+  strictEqual(js.includes('is_concretized_by: { "@id": "tagteam:is_concretized_by", "@type": "@id" }'), true);
+  strictEqual(js.includes("runtimeGraphContext"), true);
+});
+
 test("GitHub Pages app makes the TagTeam text source explicit", () => {
   strictEqual(html.includes("TagTeam text source"), true);
   strictEqual(html.includes("sc:source / schema:text"), true);

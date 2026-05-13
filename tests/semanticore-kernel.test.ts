@@ -127,6 +127,18 @@ test("TagTeam graph output is represented as top-level @graph", () => {
   strictEqual("sc:jsonld" in (result.graph ?? {}), false);
 });
 
+test("TagTeam graph context maps TagTeam prefixes and relation terms", () => {
+  const result = enrichRecord(baseRecord(), baseConfig(), baseContextManifest(), baseOntologySet(), tagTeamContextRuntime());
+  const graph = !Array.isArray(result.graph) ? result.graph : null;
+  const context = graph?.["@context"] as Record<string, unknown> | undefined;
+  deepStrictEqual(context?.inst, "urn:tagteam:instance:");
+  deepStrictEqual(context?.rdfs, "http://www.w3.org/2000/01/rdf-schema#");
+  deepStrictEqual(context?.owl, "http://www.w3.org/2002/07/owl#");
+  deepStrictEqual(context?.is_about, { "@id": "tagteam:is_about", "@type": "@id" });
+  deepStrictEqual(context?.is_concretized_by, { "@id": "tagteam:is_concretized_by", "@type": "@id" });
+  deepStrictEqual(context?.EventDescription, "tagteam:EventDescription");
+});
+
 console.log(`\n  ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);
@@ -210,6 +222,31 @@ function graphRuntime(version = "7.0.0"): TagTeamRuntime {
           "schema:name": text,
         },
       ];
+    },
+  };
+}
+
+function tagTeamContextRuntime(version = "7.0.0"): TagTeamRuntime {
+  return {
+    version,
+    buildGraph() {
+      return {
+        "@graph": [
+          {
+            "@id": "inst:VP_battlefield",
+            "@type": ["tagteam:DiscourseReferent", "tagteam:VerbPhrase"],
+            "is_about": { "@id": "inst:EventDesc_battlefiel_53416d72" },
+            "is_concretized_by": { "@id": "inst:Input_Text_IBE_3aacb2c19656" },
+            "rdfs:label": "battlefield",
+            "tagteam:denotesType": "EventDescription",
+          },
+          {
+            "@id": "inst:EventDesc_battlefiel_53416d72",
+            "@type": ["EventDescription", "ActSpecification", "owl:NamedIndividual"],
+            "rdfs:label": "Event: battlefiel",
+          },
+        ],
+      };
     },
   };
 }

@@ -1,7 +1,7 @@
 import type { EnrichedExportInput } from "./types.js";
 import type { NamedGraph, SourceRecord, WarningResource } from "../../kernel/index.js";
 import { stableStringify } from "../../kernel/index.js";
-import { CORE_CONTEXT } from "../../kernel/vocabulary.js";
+import { TAGTEAM_GRAPH_CONTEXT } from "../../kernel/vocabulary.js";
 
 const CSV_COLUMNS = [
   "recordId",
@@ -23,7 +23,7 @@ export function exportGraphBundle(input: EnrichedExportInput): string {
   const graphs = collectGraphs(input);
   return stableStringify(
     {
-      "@context": CORE_CONTEXT,
+      "@context": TAGTEAM_GRAPH_CONTEXT,
       "@id": `${input["@id"] ?? "urn:semanticore:export"}:graphs`,
       "@type": "sc:GraphBundle",
       "sc:graphs": graphs,

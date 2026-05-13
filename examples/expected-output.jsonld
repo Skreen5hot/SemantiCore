@@ -30,8 +30,65 @@
   "@type": "sc:TransformResult",
   "sc:graph": {
     "@context": {
+      "ActSpecification": "tagteam:ActSpecification",
+      "Agent": "tagteam:Agent",
+      "DirectiveInformationContentEntity": "tagteam:DirectiveInformationContentEntity",
+      "Entity": "tagteam:Entity",
+      "EventDescription": "tagteam:EventDescription",
+      "InformationBearingEntity": "tagteam:InformationBearingEntity",
+      "InformationContentEntity": "tagteam:InformationContentEntity",
+      "IntentionalAct": "tagteam:IntentionalAct",
+      "Obligation": "tagteam:Obligation",
+      "Organization": "tagteam:Organization",
+      "Permission": "tagteam:Permission",
+      "Person": "tagteam:Person",
+      "PlanSpecification": "tagteam:PlanSpecification",
       "dcterms": "http://purl.org/dc/terms/",
+      "has_agent": {
+        "@id": "tagteam:has_agent",
+        "@type": "@id"
+      },
+      "has_input": {
+        "@id": "tagteam:has_input",
+        "@type": "@id"
+      },
+      "has_output": {
+        "@id": "tagteam:has_output",
+        "@type": "@id"
+      },
+      "has_text_value": "tagteam:has_text_value",
+      "inheres_in": {
+        "@id": "tagteam:inheres_in",
+        "@type": "@id"
+      },
+      "inst": "urn:tagteam:instance:",
+      "isSpecifiedBy": {
+        "@id": "tagteam:isSpecifiedBy",
+        "@type": "@id"
+      },
+      "is_about": {
+        "@id": "tagteam:is_about",
+        "@type": "@id"
+      },
+      "is_concretized_by": {
+        "@id": "tagteam:is_concretized_by",
+        "@type": "@id"
+      },
+      "is_prescribed_by": {
+        "@id": "tagteam:is_prescribed_by",
+        "@type": "@id"
+      },
+      "is_subject_of": {
+        "@id": "tagteam:is_subject_of",
+        "@type": "@id"
+      },
+      "owl": "http://www.w3.org/2002/07/owl#",
+      "prescribes": {
+        "@id": "tagteam:prescribes",
+        "@type": "@id"
+      },
       "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
       "sc": "https://semanticore.fandaws.org/ns/",
       "sc:code": {
         "@type": "@id"

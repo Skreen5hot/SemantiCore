@@ -27,6 +27,7 @@ What changed:
 - Documented the canonicalization strategy and the remaining RDFC-1.0 gap in [CANONICALIZATION.md](./CANONICALIZATION.md).
 - Added an explicit TagTeam text source selector and persisted `sc:tagTeamSourcePropertyPath`.
 - Changed the browser sample/default mapping to `Text -> schema:text` so TagTeam input semantics are explicit and not inferred from `schema:description`.
+- Added a TagTeam graph context so emitted graphs define `inst:`, `rdfs:`, `owl:`, `is_about`, and `is_concretized_by`.
 
 Verification run before review:
 
@@ -64,6 +65,7 @@ Expected:
 - The enriched output no longer contains duplicate top-level `records`, `graphs`, or `warnings` aliases.
 - The Run panel exposes a TagTeam text source selector.
 - The default source path is `sc:source / schema:text`.
+- TagTeam Graphs output includes usable graph context mappings for TagTeam prefixes and relation terms.
 
 Block if:
 
@@ -98,7 +100,20 @@ Block if:
 - TagTeam input is chosen by a hidden first-column or description heuristic.
 - The app defaults the TagTeam source text to `schema:description`.
 
-### 4. Kernel Canonicalization
+### 4. TagTeam Graph Context
+
+Expected:
+
+- Each emitted TagTeam graph has an `@context`.
+- `inst:` is defined.
+- `rdfs:` and `owl:` are defined.
+- `is_about` and `is_concretized_by` are mapped as IRI-valued properties.
+
+Block if:
+
+- TagTeam graph output contains compact IDs or predicates that cannot be expanded by a JSON-LD processor.
+
+### 5. Kernel Canonicalization
 
 Expected:
 
@@ -112,7 +127,7 @@ Block if:
 - Hashing imports filesystem, network, time, randomness, or environment state.
 - Canonicalization mutates caller input.
 
-### 5. Documented RDFC Gap
+### 6. Documented RDFC Gap
 
 Expected:
 
@@ -132,6 +147,7 @@ Do not approve Phase 6 if any of these are true:
 - Kernel purity fails.
 - Browser output still includes duplicate top-level convenience aliases.
 - TagTeam source text is selected by hidden heuristic instead of explicit source-path configuration.
+- TagTeam graph output has ghost prefixes or unmapped relation terms.
 - Content hashes are not SHA-256 over canonical bytes.
 - The RDFC-1.0 gap is hidden or misrepresented.
 - A server, database, CDN, or cloud dependency is introduced.
@@ -164,6 +180,9 @@ Commit reviewed:
 - [ ] TagTeam text source selector is visible.
 - [ ] Default source path is `sc:source / schema:text`.
 - [ ] Mapping manifest includes `sc:tagTeamSourcePropertyPath`.
+- [ ] TagTeam graph context defines `inst:`.
+- [ ] TagTeam graph context maps `is_about`.
+- [ ] TagTeam graph context maps `is_concretized_by`.
 - [ ] Hashes are `sha256`.
 - [ ] Re-running sample keeps hashes stable.
 - [ ] Enriched output has no top-level `records` alias.

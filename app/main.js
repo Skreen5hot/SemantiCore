@@ -318,7 +318,7 @@ function buildRuntimeGraph(recordId, index, text, runtime) {
   const output = runtime.buildGraph(text, buildTagTeamOptions());
   const nodes = extractGraphNodes(output);
   const graph = {
-    "@context": coreContext(),
+    "@context": runtimeGraphContext(output),
     "@id": `urn:semanticore:graph:${stableFragment(recordId)}:${index}`,
     "@type": "sc:TagTeamGraph",
     "sc:graphForRecord": { "@id": recordId },
@@ -417,6 +417,13 @@ function extractGraphNodes(tagTeamOutput) {
   }
   if (tagTeamOutput && isObject(tagTeamOutput)) return [structuredClone(tagTeamOutput)];
   throw new Error("TagTeam buildGraph returned an unsupported graph shape.");
+}
+
+function runtimeGraphContext(tagTeamOutput) {
+  if (isObject(tagTeamOutput) && tagTeamOutput["@context"] !== undefined) {
+    return [tagTeamGraphContext(), structuredClone(tagTeamOutput["@context"])];
+  }
+  return tagTeamGraphContext();
 }
 
 function contextCollisionWarnings(tagTeamOutput, recordId) {
@@ -879,7 +886,7 @@ function exportFor(kind) {
   if (kind === "enriched" || kind === "jsonld") return stableStringify(state.run || {}, 2);
   if (kind === "graphs") {
     return stableStringify({
-      "@context": coreContext(),
+      "@context": tagTeamGraphContext(),
       "@id": "urn:semanticore:graph-bundle:browser-demo",
       "@type": "sc:GraphBundle",
       "schema:name": "TagTeam JSON-LD graph bundle",
@@ -903,7 +910,7 @@ function canonicalHashReport() {
     "sc:dataset": hashReference(state.dataset, "urn:semanticore:dataset:none"),
     "sc:run": hashReference(state.run, "urn:semanticore:run:none"),
     "sc:graphBundle": hashReference({
-      "@context": coreContext(),
+      "@context": tagTeamGraphContext(),
       "@id": "urn:semanticore:graph-bundle:browser-demo",
       "@type": "sc:GraphBundle",
       "schema:name": "TagTeam JSON-LD graph bundle",
@@ -1336,6 +1343,39 @@ function coreContext() {
     "sc:record": { "@type": "@id" },
     "sc:status": { "@type": "@id" },
     "sc:namedGraph": { "@type": "@id" },
+  };
+}
+
+function tagTeamGraphContext() {
+  return {
+    ...coreContext(),
+    inst: "urn:tagteam:instance:",
+    rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+    owl: "http://www.w3.org/2002/07/owl#",
+    is_about: { "@id": "tagteam:is_about", "@type": "@id" },
+    is_concretized_by: { "@id": "tagteam:is_concretized_by", "@type": "@id" },
+    is_subject_of: { "@id": "tagteam:is_subject_of", "@type": "@id" },
+    has_input: { "@id": "tagteam:has_input", "@type": "@id" },
+    has_agent: { "@id": "tagteam:has_agent", "@type": "@id" },
+    has_output: { "@id": "tagteam:has_output", "@type": "@id" },
+    prescribes: { "@id": "tagteam:prescribes", "@type": "@id" },
+    is_prescribed_by: { "@id": "tagteam:is_prescribed_by", "@type": "@id" },
+    isSpecifiedBy: { "@id": "tagteam:isSpecifiedBy", "@type": "@id" },
+    inheres_in: { "@id": "tagteam:inheres_in", "@type": "@id" },
+    has_text_value: "tagteam:has_text_value",
+    ActSpecification: "tagteam:ActSpecification",
+    Agent: "tagteam:Agent",
+    DirectiveInformationContentEntity: "tagteam:DirectiveInformationContentEntity",
+    Entity: "tagteam:Entity",
+    EventDescription: "tagteam:EventDescription",
+    InformationBearingEntity: "tagteam:InformationBearingEntity",
+    InformationContentEntity: "tagteam:InformationContentEntity",
+    IntentionalAct: "tagteam:IntentionalAct",
+    Obligation: "tagteam:Obligation",
+    Organization: "tagteam:Organization",
+    Permission: "tagteam:Permission",
+    Person: "tagteam:Person",
+    PlanSpecification: "tagteam:PlanSpecification",
   };
 }
 

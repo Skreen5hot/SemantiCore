@@ -265,6 +265,21 @@
 
 ---
 
+## ADR-017: Normalize TagTeam Graph Context At The Boundary
+
+**Date:** 2026-05-13
+
+**Decision:** SemantiCore wraps TagTeam graph output with a TagTeam graph context that defines the `inst:`, `rdfs:`, and `owl:` prefixes plus unprefixed TagTeam relation terms such as `is_about` and `is_concretized_by`.
+
+**Context:** TagTeam emits useful JSON-LD graph nodes, but some outputs use compact IDs and predicates without including the context needed to expand them. Without that context, downstream JSON-LD consumers see ghost prefixes and unmapped terms even though the graph shape is otherwise preserved.
+
+**Consequences:**
+- Browser and Node graph outputs are usable as JSON-LD without requiring a separate hidden TagTeam context file.
+- If a future TagTeam runtime supplies its own `@context`, SemantiCore keeps the default graph context and layers the runtime context after it.
+- The graph boundary remains an adapter concern; SemantiCore does not rewrite TagTeam nodes.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

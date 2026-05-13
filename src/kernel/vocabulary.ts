@@ -17,6 +17,37 @@ export const CORE_CONTEXT = {
   "sc:path": { "@type": "@id", "@container": "@list" },
 } as const;
 
+export const TAGTEAM_GRAPH_CONTEXT = {
+  ...CORE_CONTEXT,
+  inst: "urn:tagteam:instance:",
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+  owl: "http://www.w3.org/2002/07/owl#",
+  "is_about": { "@id": "tagteam:is_about", "@type": "@id" },
+  "is_concretized_by": { "@id": "tagteam:is_concretized_by", "@type": "@id" },
+  "is_subject_of": { "@id": "tagteam:is_subject_of", "@type": "@id" },
+  "has_input": { "@id": "tagteam:has_input", "@type": "@id" },
+  "has_agent": { "@id": "tagteam:has_agent", "@type": "@id" },
+  "has_output": { "@id": "tagteam:has_output", "@type": "@id" },
+  "prescribes": { "@id": "tagteam:prescribes", "@type": "@id" },
+  "is_prescribed_by": { "@id": "tagteam:is_prescribed_by", "@type": "@id" },
+  "isSpecifiedBy": { "@id": "tagteam:isSpecifiedBy", "@type": "@id" },
+  "inheres_in": { "@id": "tagteam:inheres_in", "@type": "@id" },
+  "has_text_value": "tagteam:has_text_value",
+  "ActSpecification": "tagteam:ActSpecification",
+  "Agent": "tagteam:Agent",
+  "DirectiveInformationContentEntity": "tagteam:DirectiveInformationContentEntity",
+  "Entity": "tagteam:Entity",
+  "EventDescription": "tagteam:EventDescription",
+  "InformationBearingEntity": "tagteam:InformationBearingEntity",
+  "InformationContentEntity": "tagteam:InformationContentEntity",
+  "IntentionalAct": "tagteam:IntentionalAct",
+  "Obligation": "tagteam:Obligation",
+  "Organization": "tagteam:Organization",
+  "Permission": "tagteam:Permission",
+  "Person": "tagteam:Person",
+  "PlanSpecification": "tagteam:PlanSpecification",
+} as const;
+
 export const KERNEL_VERSION = "1.0.0-phase1";
 
 export const VersionPolicy = {
