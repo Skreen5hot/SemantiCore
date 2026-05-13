@@ -557,14 +557,29 @@ async function saveSession() {
   state.contextManifest = buildContextManifest();
   state.ontologySet = buildOntologySet();
   const snapshot = buildSessionSnapshot();
-  await idbPut("sessions", snapshot["@id"], snapshot);
   state.savedSession = snapshot;
-  el.sessionStatus.textContent = `Saved locally with hash ${snapshot["sc:contentHash"]}.`;
+  try {
+    await idbPut("sessions", snapshot["@id"], snapshot);
+    localStorage.setItem("semanticore-session-fallback", stableStringify(snapshot));
+    el.sessionStatus.textContent = `Saved locally with IndexedDB hash ${snapshot["sc:contentHash"]}.`;
+  } catch (error) {
+    localStorage.setItem("semanticore-session-fallback", stableStringify(snapshot));
+    el.sessionStatus.textContent = `Saved locally with fallback storage hash ${snapshot["sc:contentHash"]}.`;
+  }
   renderSession();
 }
 
 async function restoreSession() {
-  const snapshot = await idbGet("sessions", "urn:semanticore:session:browser-demo");
+  let snapshot = null;
+  try {
+    snapshot = await idbGet("sessions", "urn:semanticore:session:browser-demo");
+  } catch {
+    snapshot = null;
+  }
+  if (!snapshot) {
+    const fallback = localStorage.getItem("semanticore-session-fallback");
+    snapshot = fallback ? JSON.parse(fallback) : null;
+  }
   if (!snapshot) {
     el.sessionStatus.textContent = "No local session found.";
     return;
@@ -589,7 +604,12 @@ async function restoreSession() {
 }
 
 async function clearSession() {
-  await idbDelete("sessions", "urn:semanticore:session:browser-demo");
+  try {
+    await idbDelete("sessions", "urn:semanticore:session:browser-demo");
+  } catch {
+    // Fallback storage is cleared below; IndexedDB can be unavailable in hardened browsers.
+  }
+  localStorage.removeItem("semanticore-session-fallback");
   state.savedSession = null;
   el.sessionStatus.textContent = "Local session cleared.";
   renderSession();
