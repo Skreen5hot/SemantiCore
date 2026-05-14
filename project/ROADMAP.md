@@ -226,10 +226,24 @@ Initial surfaces:
 
 **Goal:** Add optional integrations without making them architectural requirements.
 
-**Status:** In Progress
+**Status:** Complete
 
 Initial surfaces:
 - [x] Phase 8 status and review link.
 - [x] Optional integration candidate registry in the browser app.
 - [x] Visible no-data-egress default policy.
 - [x] Offline enrichment and export explicitly remain valid.
+
+---
+
+## Phase 9: Integration Preflight and Consent
+
+**Goal:** Define the user-visible approval path that any future remote integration must pass before transmitting data.
+
+**Status:** In Progress
+
+Initial surfaces:
+- [x] Phase 9 status and review link.
+- [x] Integration preflight checklist in the browser app.
+- [x] JSON-LD preflight report with zero active integrations and zero network requests.
+- [x] Explicit destination, payload scope, approval, and artifact-hash review requirements.

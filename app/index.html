@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase8">
+  <link rel="stylesheet" href="./styles.css?v=phase9">
 </head>
 <body>
   <header class="topbar">
@@ -16,25 +16,25 @@
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/ROADMAP.md">Roadmap</a>
       <a href="https://github.com/Skreen5hot/SemantiCore">GitHub</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE8_EXIT_REVIEW.md">Phase 8 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE9_EXIT_REVIEW.md">Phase 9 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 8 in progress</p>
-        <h2>Optional integrations with visible data-egress boundaries.</h2>
+        <p class="stage">Phase 9 in progress</p>
+        <h2>Integration preflight with explicit consent checkpoints.</h2>
         <p>
-          This browser workbench remains local-first while preparing opt-in integration surfaces for validators, resolvers, and artifact publishing.
+          This browser workbench now defines the review path a future validator, resolver, or publisher must pass before any data leaves the browser.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Optional integration runway</strong>
+          <strong>Preflight and consent runway</strong>
         </div>
-        <p>Run locally first; any future integration must be explicit, optional, and visible before data leaves the browser.</p>
+        <p>Every integration remains inactive until a destination, payload scope, and user approval step are visible.</p>
       </div>
     </section>
 
@@ -234,7 +234,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       <section class="panel integration-panel" aria-labelledby="integration-title">
         <div class="panel-heading">
           <div>
-            <p class="step">8</p>
+            <p class="step">9</p>
             <h2 id="integration-title">Optional Integrations</h2>
           </div>
         </div>
@@ -264,6 +264,31 @@ ex:Notice a ex:InformationContentEntity .</textarea>
   "sc:offlineModeValid": true,
   "sc:dataEgressDefault": "sc:NoDataEgress",
   "sc:requiresExplicitOptIn": true
+}</pre>
+        </details>
+        <div class="preflight-checklist" aria-label="Integration preflight checklist">
+          <h3>Preflight Checklist</h3>
+          <ol>
+            <li>Show the destination before transmission.</li>
+            <li>Show the payload scope before transmission.</li>
+            <li>Require an explicit approval action.</li>
+            <li>Record the artifact hash and integration decision.</li>
+          </ol>
+        </div>
+        <details open>
+          <summary>Integration preflight JSON-LD</summary>
+          <pre>{
+  "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/"
+  },
+  "@id": "urn:semanticore:integration-preflight:browser-demo",
+  "@type": ["sc:IntegrationPreflight"],
+  "sc:activeIntegrationCount": 0,
+  "sc:networkRequestCount": 0,
+  "sc:requiresDestinationReview": true,
+  "sc:requiresPayloadScopeReview": true,
+  "sc:requiresExplicitApproval": true,
+  "sc:blockedUntilUserApproval": true
 }</pre>
         </details>
       </section>
@@ -351,6 +376,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase8" type="module"></script>
+  <script src="./main.js?v=phase9" type="module"></script>
 </body>
 </html>

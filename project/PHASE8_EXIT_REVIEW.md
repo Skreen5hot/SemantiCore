@@ -23,17 +23,17 @@ Phase 8 proves that SemantiCore can introduce optional integration surfaces with
 
 ## Review Checklist
 
-- [ ] Page shows Phase 8.
-- [ ] Optional integration candidates are visible.
-- [ ] No remote integration is active by default.
-- [ ] Data-egress default is visible as `sc:NoDataEgress`.
-- [ ] Explicit opt-in policy is visible.
-- [ ] Offline enrichment and export remain fully valid.
-- [ ] `src/kernel` remains free of integration coupling.
-- [ ] Core tests remain no-network.
-- [ ] `npm.cmd test` passes.
-- [ ] `npm.cmd run test:purity` passes.
-- [ ] `npm.cmd run build` passes.
+- [x] Page shows Phase 8.
+- [x] Optional integration candidates are visible.
+- [x] No remote integration is active by default.
+- [x] Data-egress default is visible as `sc:NoDataEgress`.
+- [x] Explicit opt-in policy is visible.
+- [x] Offline enrichment and export remain fully valid.
+- [x] `src/kernel` remains free of integration coupling.
+- [x] Core tests remain no-network.
+- [x] `npm.cmd test` passes.
+- [x] `npm.cmd run test:purity` passes.
+- [x] `npm.cmd run build` passes.
 
 ## Non-Blocking Notes
 
@@ -42,8 +42,8 @@ Phase 8 proves that SemantiCore can introduce optional integration surfaces with
 
 ## Approval
 
-Complete this section at Phase 8 review.
+Approved by human reviewer on 2026-05-14.
 
-- [ ] Approved: Begin Phase 9.
+- [x] Approved: Begin Phase 9.
 - [ ] Approved with non-blocking notes: Begin Phase 9 after recording notes.
 - [ ] Not approved: Address blockers and repeat Phase 8 review.

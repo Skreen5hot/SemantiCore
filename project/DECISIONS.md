@@ -330,6 +330,22 @@
 
 ---
 
+## ADR-021: Approve Phase 8 and Begin Phase 9
+
+**Date:** 2026-05-14
+
+**Decision:** Phase 8 is approved. Begin Phase 9: integration preflight and consent.
+
+**Context:** The human reviewer approved the Phase 8 optional integration surface. The app now identifies candidate integrations while keeping them inactive, shows `sc:NoDataEgress` as the default, and preserves offline enrichment and export as fully valid behavior. The next risk to reduce is not transport code; it is the user-visible review path that must exist before any future integration transmits data.
+
+**Consequences:**
+- Phase 8 is marked complete.
+- Phase 9 is marked in progress.
+- Remote integration implementation remains out of scope until preflight requirements are explicit.
+- Future integration actions must expose destination, payload scope, explicit approval, and artifact-hash decision evidence before any data egress.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

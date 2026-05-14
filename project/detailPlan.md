@@ -632,6 +632,27 @@ Create stable fixtures.
 - Browser app exposes a JSON-LD integration policy.
 - The default data-egress state is `sc:NoDataEgress`.
 
+**Exit Criteria**
+- [x] Human reviewer completes [PHASE8_EXIT_REVIEW.md](./PHASE8_EXIT_REVIEW.md) and records approval to begin Phase 9.
+
+## Phase 9: Integration Preflight and Consent
+
+**Goal:** Define the user-visible approval path that any future remote integration must pass before transmitting data.
+
+**Primary Outputs**
+- Integration preflight checklist.
+- JSON-LD preflight report.
+- Destination and payload-scope review requirements.
+- Explicit approval and artifact-hash decision recording.
+
+**Acceptance Criteria**
+- No integration is active by default.
+- Preflight exposes destination review before transmission.
+- Preflight exposes payload-scope review before transmission.
+- Preflight requires explicit user approval.
+- Preflight records the artifact hash and integration decision.
+- Core tests remain no-network.
+
 ## Cross-Phase Quality Gates
 
 Every phase must preserve these gates:

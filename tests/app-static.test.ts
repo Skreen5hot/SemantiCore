@@ -33,12 +33,12 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Selected TagTeam Record Graph"), true);
 });
 
-test("GitHub Pages app advertises Phase 8 status", () => {
-  strictEqual(html.includes("Phase 8 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 8"'), true);
-  strictEqual(html.includes("PHASE8_EXIT_REVIEW.md"), true);
-  strictEqual(html.includes("styles.css?v=phase8"), true);
-  strictEqual(html.includes("main.js?v=phase8"), true);
+test("GitHub Pages app advertises Phase 9 status", () => {
+  strictEqual(html.includes("Phase 9 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 9"'), true);
+  strictEqual(html.includes("PHASE9_EXIT_REVIEW.md"), true);
+  strictEqual(html.includes("styles.css?v=phase9"), true);
+  strictEqual(html.includes("main.js?v=phase9"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -165,6 +165,19 @@ test("GitHub Pages app exposes Phase 8 optional integration policy", () => {
   strictEqual(html.includes("sc:IntegrationPolicy"), true);
   strictEqual(html.includes("sc:NoDataEgress"), true);
   strictEqual(html.includes("sc:requiresExplicitOptIn"), true);
+});
+
+test("GitHub Pages app exposes Phase 9 integration preflight checkpoints", () => {
+  strictEqual(html.includes("Preflight Checklist"), true);
+  strictEqual(html.includes("Show the destination before transmission"), true);
+  strictEqual(html.includes("Show the payload scope before transmission"), true);
+  strictEqual(html.includes("Require an explicit approval action"), true);
+  strictEqual(html.includes("Record the artifact hash and integration decision"), true);
+  strictEqual(html.includes("Integration preflight JSON-LD"), true);
+  strictEqual(html.includes("sc:IntegrationPreflight"), true);
+  strictEqual(html.includes("sc:activeIntegrationCount"), true);
+  strictEqual(html.includes("sc:networkRequestCount"), true);
+  strictEqual(html.includes("sc:blockedUntilUserApproval"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

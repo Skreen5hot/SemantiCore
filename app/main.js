@@ -1,6 +1,6 @@
 import { createTagTeamRuntimeAdapter } from "./dist/adapters/integration/tagteam-runtime.js";
 
-const phaseLabel = "Phase 8";
+const phaseLabel = "Phase 9";
 const fallbackRuntimeVersion = "7.0.0";
 const parseTraceInclusion = "summary";
 const largeFileWarningBytes = 2 * 1024 * 1024;
