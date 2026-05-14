@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase7">
+  <link rel="stylesheet" href="./styles.css?v=phase8">
 </head>
 <body>
   <header class="topbar">
@@ -16,25 +16,25 @@
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/ROADMAP.md">Roadmap</a>
       <a href="https://github.com/Skreen5hot/SemantiCore">GitHub</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE7_EXIT_REVIEW.md">Phase 7 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE8_EXIT_REVIEW.md">Phase 8 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 7 in progress</p>
-        <h2>Accessible local workflows, clearer exports, and safer large-file handling.</h2>
+        <p class="stage">Phase 8 in progress</p>
+        <h2>Optional integrations with visible data-egress boundaries.</h2>
         <p>
-          This browser workbench keeps data local while making the export path clearer for named graph bundles, flat triple-store ingestion, sessions, and summaries.
+          This browser workbench remains local-first while preparing opt-in integration surfaces for validators, resolvers, and artifact publishing.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Production pages polish</strong>
+          <strong>Optional integration runway</strong>
         </div>
-        <p>Run locally, inspect graph output, and choose the export shape your downstream tool expects.</p>
+        <p>Run locally first; any future integration must be explicit, optional, and visible before data leaves the browser.</p>
       </div>
     </section>
 
@@ -230,6 +230,43 @@ ex:Notice a ex:InformationContentEntity .</textarea>
           <pre id="contextPreview"></pre>
         </details>
       </section>
+
+      <section class="panel integration-panel" aria-labelledby="integration-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">8</p>
+            <h2 id="integration-title">Optional Integrations</h2>
+          </div>
+        </div>
+        <p class="muted" role="status" aria-live="polite">No remote integration is active. Offline enrichment and export remain fully valid.</p>
+        <ul class="integration-list" aria-label="Optional integration candidates">
+          <li>
+            <strong>Fandaws export validator</strong>
+            <span>Candidate only; no data egress</span>
+          </li>
+          <li>
+            <strong>Remote ontology resolver</strong>
+            <span>Candidate only; opt-in required</span>
+          </li>
+          <li>
+            <strong>HIRI artifact publishing</strong>
+            <span>Candidate only; explicit publish step required</span>
+          </li>
+        </ul>
+        <details open>
+          <summary>Integration policy JSON-LD</summary>
+          <pre>{
+  "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/"
+  },
+  "@id": "urn:semanticore:integration-policy:browser-demo",
+  "@type": ["sc:IntegrationPolicy"],
+  "sc:offlineModeValid": true,
+  "sc:dataEgressDefault": "sc:NoDataEgress",
+  "sc:requiresExplicitOptIn": true
+}</pre>
+        </details>
+      </section>
     </section>
 
     <section class="results" aria-label="Results">
@@ -314,6 +351,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase7" type="module"></script>
+  <script src="./main.js?v=phase8" type="module"></script>
 </body>
 </html>

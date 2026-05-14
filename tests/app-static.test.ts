@@ -33,10 +33,12 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Selected TagTeam Record Graph"), true);
 });
 
-test("GitHub Pages app advertises Phase 7 status", () => {
-  strictEqual(html.includes("Phase 7 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 7"'), true);
-  strictEqual(html.includes("PHASE7_EXIT_REVIEW.md"), true);
+test("GitHub Pages app advertises Phase 8 status", () => {
+  strictEqual(html.includes("Phase 8 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 8"'), true);
+  strictEqual(html.includes("PHASE8_EXIT_REVIEW.md"), true);
+  strictEqual(html.includes("styles.css?v=phase8"), true);
+  strictEqual(html.includes("main.js?v=phase8"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -150,6 +152,19 @@ test("GitHub Pages app exposes Phase 7 accessibility and large-file guardrails",
   strictEqual(js.includes("outputPreviewSoftLimit"), true);
   strictEqual(js.includes("window.confirm"), true);
   strictEqual(js.includes("Run cancelled before enrichment"), true);
+});
+
+test("GitHub Pages app exposes Phase 8 optional integration policy", () => {
+  strictEqual(html.includes("Optional Integrations"), true);
+  strictEqual(html.includes("No remote integration is active"), true);
+  strictEqual(html.includes("Offline enrichment and export remain fully valid"), true);
+  strictEqual(html.includes("Fandaws export validator"), true);
+  strictEqual(html.includes("Remote ontology resolver"), true);
+  strictEqual(html.includes("HIRI artifact publishing"), true);
+  strictEqual(html.includes("Integration policy JSON-LD"), true);
+  strictEqual(html.includes("sc:IntegrationPolicy"), true);
+  strictEqual(html.includes("sc:NoDataEgress"), true);
+  strictEqual(html.includes("sc:requiresExplicitOptIn"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

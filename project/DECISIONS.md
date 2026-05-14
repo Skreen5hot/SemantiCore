@@ -313,6 +313,23 @@
 
 ---
 
+## ADR-020: Approve Phase 7 and Begin Phase 8
+
+**Date:** 2026-05-14
+
+**Decision:** Phase 7 is approved. Begin Phase 8: optional integration surfaces.
+
+**Context:** The human reviewer approved the Phase 7 production-page polish after export guidance, live status regions, large-file guardrails, direct graph inspection, and triple-store-friendly export paths were in place. Phase 6 also showed that integration behavior must be explicit, inspectable, and opt-in before any data can leave the browser.
+
+**Consequences:**
+- Phase 7 is marked complete.
+- Phase 8 is marked in progress.
+- Optional integrations must remain outside `src/kernel`.
+- Offline enrichment and export remain fully valid.
+- Any future remote validator, resolver, sync, or publishing surface must make data egress visible before activation.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

@@ -280,6 +280,32 @@ textarea {
   padding: 10px;
 }
 
+.integration-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.integration-list li {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 10px;
+}
+
+.integration-list strong {
+  color: var(--accent-strong);
+}
+
+.integration-list span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .mapping-head,
 .mapping-row {
   display: grid;

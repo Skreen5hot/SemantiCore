@@ -26,16 +26,16 @@ Phase 7 proves that the GitHub Pages app is usable for real local workflows: exp
 
 ## Review Checklist
 
-- [ ] Page shows Phase 7.
-- [ ] Primary status messages use live regions.
-- [ ] Export buttons clearly distinguish named graph bundle from flat triple-store ingest.
-- [ ] Large local files prompt before loading into memory.
-- [ ] Large browser runs prompt before enrichment starts.
-- [ ] Oversized output preview is truncated with a clear message.
-- [ ] Spec, roadmap, repository, and Phase 7 review links are present.
-- [ ] `npm.cmd test` passes.
-- [ ] `npm.cmd run test:purity` passes.
-- [ ] `npm.cmd run build` passes.
+- [x] Page shows Phase 7.
+- [x] Primary status messages use live regions.
+- [x] Export buttons clearly distinguish named graph bundle from flat triple-store ingest.
+- [x] Large local files prompt before loading into memory.
+- [x] Large browser runs prompt before enrichment starts.
+- [x] Oversized output preview is truncated with a clear message.
+- [x] Spec, roadmap, repository, and Phase 7 review links are present.
+- [x] `npm.cmd test` passes.
+- [x] `npm.cmd run test:purity` passes.
+- [x] `npm.cmd run build` passes.
 
 ## Non-Blocking Notes
 
@@ -44,8 +44,8 @@ Phase 7 proves that the GitHub Pages app is usable for real local workflows: exp
 
 ## Approval
 
-Complete this section at Phase 7 review.
+Approved by human reviewer on 2026-05-14.
 
-- [ ] Approved: Begin Phase 8.
+- [x] Approved: Begin Phase 8.
 - [ ] Approved with non-blocking notes: Begin Phase 8 after recording notes.
 - [ ] Not approved: Address blockers and repeat Phase 7 review.

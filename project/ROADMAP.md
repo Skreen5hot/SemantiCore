@@ -212,10 +212,24 @@ Completed surfaces:
 
 **Goal:** Make the GitHub Pages app usable, resilient, and clear for real local workflows.
 
-**Status:** In Progress
+**Status:** Complete
 
 Initial surfaces:
 - [x] Phase 7 status and review links.
 - [x] Export format guidance for named graph, flat graph, session, and summary outputs.
 - [x] Accessible live status regions for primary app state.
 - [x] Large-file and large-run guardrails.
+
+---
+
+## Phase 8: Optional Integration Surfaces
+
+**Goal:** Add optional integrations without making them architectural requirements.
+
+**Status:** In Progress
+
+Initial surfaces:
+- [x] Phase 8 status and review link.
+- [x] Optional integration candidate registry in the browser app.
+- [x] Visible no-data-egress default policy.
+- [x] Offline enrichment and export explicitly remain valid.

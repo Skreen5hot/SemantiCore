@@ -604,6 +604,9 @@ Create stable fixtures.
 - App explains local-only data handling.
 - App describes export formats.
 
+**Exit Criteria**
+- [x] Human reviewer completes [PHASE7_EXIT_REVIEW.md](./PHASE7_EXIT_REVIEW.md) and records approval to begin Phase 8.
+
 ## Phase 8: Optional Integration Surfaces
 
 **Goal:** Add optional integrations without making them architectural requirements.
@@ -621,6 +624,13 @@ Create stable fixtures.
 - Offline mode remains fully valid.
 - Data egress is visible to the user.
 - Core tests remain no-network.
+
+### 8.1 Integration Policy Surface
+
+**Acceptance Criteria**
+- Browser app lists candidate integrations as inactive by default.
+- Browser app exposes a JSON-LD integration policy.
+- The default data-egress state is `sc:NoDataEgress`.
 
 ## Cross-Phase Quality Gates
 
