@@ -362,6 +362,22 @@
 
 ---
 
+## ADR-023: Approve Phase 10 and Begin Phase 11
+
+**Date:** 2026-05-14
+
+**Decision:** Phase 10 is approved. Begin Phase 11: local receipt packages.
+
+**Context:** The human reviewer approved the Phase 10 integration decision receipt surface. The project now has a local JSON-LD receipt shape for future approve, deny, or cancel decisions. The next step is to define how that receipt is packaged with policy, preflight, artifact-hash, and manifest-hash evidence for portable review.
+
+**Consequences:**
+- Phase 10 is marked complete.
+- Phase 11 is marked in progress.
+- Receipt packages remain local/download-only by default.
+- Remote integration implementation remains out of scope until receipt packages can preserve the evidence needed for review.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

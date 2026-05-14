@@ -307,7 +307,8 @@ textarea {
 }
 
 .preflight-checklist,
-.receipt-checklist {
+.receipt-checklist,
+.receipt-package {
   margin-top: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -316,21 +317,24 @@ textarea {
 }
 
 .preflight-checklist h3,
-.receipt-checklist h3 {
+.receipt-checklist h3,
+.receipt-package h3 {
   margin: 0 0 8px;
   color: var(--accent-strong);
   font-size: 1rem;
 }
 
 .preflight-checklist ol,
-.receipt-checklist ol {
+.receipt-checklist ol,
+.receipt-package ol {
   margin: 0;
   padding-left: 20px;
   color: var(--muted);
 }
 
 .preflight-checklist li + li,
-.receipt-checklist li + li {
+.receipt-checklist li + li,
+.receipt-package li + li {
   margin-top: 6px;
 }
 

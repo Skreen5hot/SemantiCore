@@ -254,10 +254,24 @@ Initial surfaces:
 
 **Goal:** Make future integration decisions auditable as local JSON-LD receipts before any remote adapter can transmit data.
 
-**Status:** In Progress
+**Status:** Complete
 
 Initial surfaces:
 - [x] Phase 10 status and review link.
 - [x] Decision receipt checklist in the browser app.
 - [x] JSON-LD decision receipt template with `sc:NotSubmitted` default.
 - [x] Local-only receipt policy with no remote transmission.
+
+---
+
+## Phase 11: Local Receipt Packages
+
+**Goal:** Package local integration decision evidence so a receipt can travel with the artifact and manifest hashes it describes.
+
+**Status:** In Progress
+
+Initial surfaces:
+- [x] Phase 11 status and review link.
+- [x] Local receipt package checklist in the browser app.
+- [x] JSON-LD receipt package template with `sc:LocalDraft` default.
+- [x] Download-only package policy with no remote transmission.

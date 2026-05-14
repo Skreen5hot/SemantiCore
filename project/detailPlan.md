@@ -674,6 +674,28 @@ Create stable fixtures.
 - Receipt remains local unless the user exports it.
 - Core tests remain no-network.
 
+**Exit Criteria**
+- [x] Human reviewer completes [PHASE10_EXIT_REVIEW.md](./PHASE10_EXIT_REVIEW.md) and records approval to begin Phase 11.
+
+## Phase 11: Local Receipt Packages
+
+**Goal:** Package local integration decision evidence so a receipt can travel with the artifact and manifest hashes it describes.
+
+**Primary Outputs**
+- Local receipt package checklist.
+- JSON-LD receipt package template.
+- Package references to policy, preflight, and receipt resources.
+- Required artifact and manifest hash evidence.
+- Download-only package policy.
+
+**Acceptance Criteria**
+- Package status defaults to `sc:LocalDraft`.
+- Package includes integration policy, preflight, and decision receipt references.
+- Package requires artifact hash evidence.
+- Package requires manifest hash evidence.
+- Package remains download-only with no remote transmission.
+- Core tests remain no-network.
+
 ## Cross-Phase Quality Gates
 
 Every phase must preserve these gates:

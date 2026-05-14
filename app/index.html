@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase10">
+  <link rel="stylesheet" href="./styles.css?v=phase11">
 </head>
 <body>
   <header class="topbar">
@@ -16,25 +16,25 @@
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/ROADMAP.md">Roadmap</a>
       <a href="https://github.com/Skreen5hot/SemantiCore">GitHub</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE10_EXIT_REVIEW.md">Phase 10 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE11_EXIT_REVIEW.md">Phase 11 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 10 in progress</p>
-        <h2>Integration decision receipts with local audit evidence.</h2>
+        <p class="stage">Phase 11 in progress</p>
+        <h2>Local receipt packages for portable integration review.</h2>
         <p>
-          This browser workbench now defines the receipt a future validator, resolver, or publisher must produce when a user approves, denies, or cancels an integration.
+          This browser workbench now defines how local decision receipts travel with the artifact, policy, preflight, and manifest evidence they describe.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Local decision receipts</strong>
+          <strong>Portable receipt packages</strong>
         </div>
-        <p>Receipts stay local by default and bind every future integration decision to the artifact hash, destination, and payload scope.</p>
+        <p>Packages stay local by default and can be downloaded for review without contacting a validator, resolver, or publishing endpoint.</p>
       </div>
     </section>
 
@@ -234,7 +234,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       <section class="panel integration-panel" aria-labelledby="integration-title">
         <div class="panel-heading">
           <div>
-            <p class="step">10</p>
+            <p class="step">11</p>
             <h2 id="integration-title">Optional Integrations</h2>
           </div>
         </div>
@@ -315,6 +315,41 @@ ex:Notice a ex:InformationContentEntity .</textarea>
   "sc:destinationRequired": true,
   "sc:payloadScopeRequired": true,
   "sc:localReceiptOnly": true,
+  "sc:remoteTransmission": false
+}</pre>
+        </details>
+        <div class="receipt-package" aria-label="Local receipt package contents">
+          <h3>Local Receipt Package</h3>
+          <ol>
+            <li>Include the integration policy.</li>
+            <li>Include the integration preflight report.</li>
+            <li>Include the decision receipt.</li>
+            <li>Reference artifact, context, ontology, and mapping hashes.</li>
+          </ol>
+        </div>
+        <details open>
+          <summary>Receipt package JSON-LD</summary>
+          <pre>{
+  "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/"
+  },
+  "@id": "urn:semanticore:receipt-package:browser-demo:pending",
+  "@type": ["sc:IntegrationReceiptPackage"],
+  "sc:packageStatus": {
+    "@id": "sc:LocalDraft"
+  },
+  "sc:includesIntegrationPolicy": {
+    "@id": "urn:semanticore:integration-policy:browser-demo"
+  },
+  "sc:includesIntegrationPreflight": {
+    "@id": "urn:semanticore:integration-preflight:browser-demo"
+  },
+  "sc:includesDecisionReceipt": {
+    "@id": "urn:semanticore:integration-receipt:browser-demo:pending"
+  },
+  "sc:artifactHashRequired": true,
+  "sc:manifestHashesRequired": true,
+  "sc:downloadOnly": true,
   "sc:remoteTransmission": false
 }</pre>
         </details>
@@ -403,6 +438,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase10" type="module"></script>
+  <script src="./main.js?v=phase11" type="module"></script>
 </body>
 </html>

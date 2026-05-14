@@ -24,20 +24,20 @@ Phase 10 proves that future optional integration decisions can be audited locall
 
 ## Review Checklist
 
-- [ ] Page shows Phase 10.
-- [ ] Decision receipt requirements are visible.
-- [ ] Receipt JSON-LD is visible.
-- [ ] Receipt status defaults to `sc:NotSubmitted`.
-- [ ] Receipt requires an artifact hash.
-- [ ] Receipt requires destination evidence.
-- [ ] Receipt requires payload-scope evidence.
-- [ ] Receipt remains local by default.
-- [ ] Receipt records remote transmission as false by default.
-- [ ] `src/kernel` remains free of integration coupling.
-- [ ] Core tests remain no-network.
-- [ ] `npm.cmd test` passes.
-- [ ] `npm.cmd run test:purity` passes.
-- [ ] `npm.cmd run build` passes.
+- [x] Page shows Phase 10.
+- [x] Decision receipt requirements are visible.
+- [x] Receipt JSON-LD is visible.
+- [x] Receipt status defaults to `sc:NotSubmitted`.
+- [x] Receipt requires an artifact hash.
+- [x] Receipt requires destination evidence.
+- [x] Receipt requires payload-scope evidence.
+- [x] Receipt remains local by default.
+- [x] Receipt records remote transmission as false by default.
+- [x] `src/kernel` remains free of integration coupling.
+- [x] Core tests remain no-network.
+- [x] `npm.cmd test` passes.
+- [x] `npm.cmd run test:purity` passes.
+- [x] `npm.cmd run build` passes.
 
 ## Non-Blocking Notes
 
@@ -46,8 +46,8 @@ Phase 10 proves that future optional integration decisions can be audited locall
 
 ## Approval
 
-Complete this section at Phase 10 review.
+Approved by human reviewer on 2026-05-14.
 
-- [ ] Approved: Begin Phase 11.
+- [x] Approved: Begin Phase 11.
 - [ ] Approved with non-blocking notes: Begin Phase 11 after recording notes.
 - [ ] Not approved: Address blockers and repeat Phase 10 review.

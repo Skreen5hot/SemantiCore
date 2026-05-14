@@ -33,12 +33,12 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Selected TagTeam Record Graph"), true);
 });
 
-test("GitHub Pages app advertises Phase 10 status", () => {
-  strictEqual(html.includes("Phase 10 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 10"'), true);
-  strictEqual(html.includes("PHASE10_EXIT_REVIEW.md"), true);
-  strictEqual(html.includes("styles.css?v=phase10"), true);
-  strictEqual(html.includes("main.js?v=phase10"), true);
+test("GitHub Pages app advertises Phase 11 status", () => {
+  strictEqual(html.includes("Phase 11 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 11"'), true);
+  strictEqual(html.includes("PHASE11_EXIT_REVIEW.md"), true);
+  strictEqual(html.includes("styles.css?v=phase11"), true);
+  strictEqual(html.includes("main.js?v=phase11"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -192,6 +192,20 @@ test("GitHub Pages app exposes Phase 10 integration decision receipts", () => {
   strictEqual(html.includes("sc:artifactHashRequired"), true);
   strictEqual(html.includes("sc:localReceiptOnly"), true);
   strictEqual(html.includes("sc:remoteTransmission"), true);
+});
+
+test("GitHub Pages app exposes Phase 11 local receipt packages", () => {
+  strictEqual(html.includes("Local Receipt Package"), true);
+  strictEqual(html.includes("Include the integration policy"), true);
+  strictEqual(html.includes("Include the integration preflight report"), true);
+  strictEqual(html.includes("Include the decision receipt"), true);
+  strictEqual(html.includes("Reference artifact, context, ontology, and mapping hashes"), true);
+  strictEqual(html.includes("Receipt package JSON-LD"), true);
+  strictEqual(html.includes("sc:IntegrationReceiptPackage"), true);
+  strictEqual(html.includes("sc:LocalDraft"), true);
+  strictEqual(html.includes("sc:includesIntegrationPolicy"), true);
+  strictEqual(html.includes("sc:manifestHashesRequired"), true);
+  strictEqual(html.includes("sc:downloadOnly"), true);
 });
 
 test("Browser MVP does not make network calls", () => {
