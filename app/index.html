@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SemantiCore Workbench</title>
-  <link rel="stylesheet" href="./styles.css?v=phase9">
+  <link rel="stylesheet" href="./styles.css?v=phase10">
 </head>
 <body>
   <header class="topbar">
@@ -16,25 +16,25 @@
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/SPEC.md">Spec v1.0</a>
       <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/ROADMAP.md">Roadmap</a>
       <a href="https://github.com/Skreen5hot/SemantiCore">GitHub</a>
-      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE9_EXIT_REVIEW.md">Phase 9 Review</a>
+      <a href="https://github.com/Skreen5hot/SemantiCore/blob/main/project/PHASE10_EXIT_REVIEW.md">Phase 10 Review</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="stage">Phase 9 in progress</p>
-        <h2>Integration preflight with explicit consent checkpoints.</h2>
+        <p class="stage">Phase 10 in progress</p>
+        <h2>Integration decision receipts with local audit evidence.</h2>
         <p>
-          This browser workbench now defines the review path a future validator, resolver, or publisher must pass before any data leaves the browser.
+          This browser workbench now defines the receipt a future validator, resolver, or publisher must produce when a user approves, denies, or cancels an integration.
         </p>
       </div>
       <div class="status-panel" aria-label="Project status">
         <div>
           <span class="status-dot"></span>
-          <strong>Preflight and consent runway</strong>
+          <strong>Local decision receipts</strong>
         </div>
-        <p>Every integration remains inactive until a destination, payload scope, and user approval step are visible.</p>
+        <p>Receipts stay local by default and bind every future integration decision to the artifact hash, destination, and payload scope.</p>
       </div>
     </section>
 
@@ -234,7 +234,7 @@ ex:Notice a ex:InformationContentEntity .</textarea>
       <section class="panel integration-panel" aria-labelledby="integration-title">
         <div class="panel-heading">
           <div>
-            <p class="step">9</p>
+            <p class="step">10</p>
             <h2 id="integration-title">Optional Integrations</h2>
           </div>
         </div>
@@ -289,6 +289,33 @@ ex:Notice a ex:InformationContentEntity .</textarea>
   "sc:requiresPayloadScopeReview": true,
   "sc:requiresExplicitApproval": true,
   "sc:blockedUntilUserApproval": true
+}</pre>
+        </details>
+        <div class="receipt-checklist" aria-label="Integration decision receipt checklist">
+          <h3>Decision Receipt Requirements</h3>
+          <ol>
+            <li>Bind receipt to the artifact hash.</li>
+            <li>Capture destination and payload scope.</li>
+            <li>Record approve, deny, or cancel decision.</li>
+            <li>Keep the receipt local unless the user exports it.</li>
+          </ol>
+        </div>
+        <details open>
+          <summary>Integration decision receipt JSON-LD</summary>
+          <pre>{
+  "@context": {
+    "sc": "https://semanticore.fandaws.org/ns/"
+  },
+  "@id": "urn:semanticore:integration-receipt:browser-demo:pending",
+  "@type": ["sc:IntegrationDecisionReceipt"],
+  "sc:decisionStatus": {
+    "@id": "sc:NotSubmitted"
+  },
+  "sc:artifactHashRequired": true,
+  "sc:destinationRequired": true,
+  "sc:payloadScopeRequired": true,
+  "sc:localReceiptOnly": true,
+  "sc:remoteTransmission": false
 }</pre>
         </details>
       </section>
@@ -376,6 +403,6 @@ ex:Notice a ex:InformationContentEntity .</textarea>
     </section>
   </main>
 
-  <script src="./main.js?v=phase9" type="module"></script>
+  <script src="./main.js?v=phase10" type="module"></script>
 </body>
 </html>

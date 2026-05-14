@@ -240,10 +240,24 @@ Initial surfaces:
 
 **Goal:** Define the user-visible approval path that any future remote integration must pass before transmitting data.
 
-**Status:** In Progress
+**Status:** Complete
 
 Initial surfaces:
 - [x] Phase 9 status and review link.
 - [x] Integration preflight checklist in the browser app.
 - [x] JSON-LD preflight report with zero active integrations and zero network requests.
 - [x] Explicit destination, payload scope, approval, and artifact-hash review requirements.
+
+---
+
+## Phase 10: Integration Decision Receipts
+
+**Goal:** Make future integration decisions auditable as local JSON-LD receipts before any remote adapter can transmit data.
+
+**Status:** In Progress
+
+Initial surfaces:
+- [x] Phase 10 status and review link.
+- [x] Decision receipt checklist in the browser app.
+- [x] JSON-LD decision receipt template with `sc:NotSubmitted` default.
+- [x] Local-only receipt policy with no remote transmission.

@@ -33,12 +33,12 @@ test("GitHub Pages app exposes visible workbench workflow controls", () => {
   strictEqual(html.includes("Selected TagTeam Record Graph"), true);
 });
 
-test("GitHub Pages app advertises Phase 9 status", () => {
-  strictEqual(html.includes("Phase 9 in progress"), true);
-  strictEqual(js.includes('const phaseLabel = "Phase 9"'), true);
-  strictEqual(html.includes("PHASE9_EXIT_REVIEW.md"), true);
-  strictEqual(html.includes("styles.css?v=phase9"), true);
-  strictEqual(html.includes("main.js?v=phase9"), true);
+test("GitHub Pages app advertises Phase 10 status", () => {
+  strictEqual(html.includes("Phase 10 in progress"), true);
+  strictEqual(js.includes('const phaseLabel = "Phase 10"'), true);
+  strictEqual(html.includes("PHASE10_EXIT_REVIEW.md"), true);
+  strictEqual(html.includes("styles.css?v=phase10"), true);
+  strictEqual(html.includes("main.js?v=phase10"), true);
 });
 
 test("GitHub Pages app exposes visible Phase 4 persistence controls", () => {
@@ -178,6 +178,20 @@ test("GitHub Pages app exposes Phase 9 integration preflight checkpoints", () =>
   strictEqual(html.includes("sc:activeIntegrationCount"), true);
   strictEqual(html.includes("sc:networkRequestCount"), true);
   strictEqual(html.includes("sc:blockedUntilUserApproval"), true);
+});
+
+test("GitHub Pages app exposes Phase 10 integration decision receipts", () => {
+  strictEqual(html.includes("Decision Receipt Requirements"), true);
+  strictEqual(html.includes("Bind receipt to the artifact hash"), true);
+  strictEqual(html.includes("Capture destination and payload scope"), true);
+  strictEqual(html.includes("Record approve, deny, or cancel decision"), true);
+  strictEqual(html.includes("Keep the receipt local unless the user exports it"), true);
+  strictEqual(html.includes("Integration decision receipt JSON-LD"), true);
+  strictEqual(html.includes("sc:IntegrationDecisionReceipt"), true);
+  strictEqual(html.includes("sc:NotSubmitted"), true);
+  strictEqual(html.includes("sc:artifactHashRequired"), true);
+  strictEqual(html.includes("sc:localReceiptOnly"), true);
+  strictEqual(html.includes("sc:remoteTransmission"), true);
 });
 
 test("Browser MVP does not make network calls", () => {

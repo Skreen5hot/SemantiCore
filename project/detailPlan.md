@@ -653,6 +653,27 @@ Create stable fixtures.
 - Preflight records the artifact hash and integration decision.
 - Core tests remain no-network.
 
+**Exit Criteria**
+- [x] Human reviewer completes [PHASE9_EXIT_REVIEW.md](./PHASE9_EXIT_REVIEW.md) and records approval to begin Phase 10.
+
+## Phase 10: Integration Decision Receipts
+
+**Goal:** Make future integration decisions auditable as local JSON-LD receipts before any remote adapter can transmit data.
+
+**Primary Outputs**
+- Integration decision receipt checklist.
+- JSON-LD receipt template.
+- Local-only receipt default.
+- Receipt fields for artifact hash, destination, payload scope, decision status, and transmission status.
+
+**Acceptance Criteria**
+- Receipt status defaults to `sc:NotSubmitted`.
+- Receipt requires an artifact hash.
+- Receipt requires destination and payload-scope evidence.
+- Receipt records whether remote transmission occurred.
+- Receipt remains local unless the user exports it.
+- Core tests remain no-network.
+
 ## Cross-Phase Quality Gates
 
 Every phase must preserve these gates:

@@ -346,6 +346,22 @@
 
 ---
 
+## ADR-022: Approve Phase 9 and Begin Phase 10
+
+**Date:** 2026-05-14
+
+**Decision:** Phase 9 is approved. Begin Phase 10: integration decision receipts.
+
+**Context:** The human reviewer approved the Phase 9 preflight and consent surface. Future integrations now have a visible gate for destination, payload scope, explicit approval, and artifact-hash review. The next step is to define the receipt evidence that proves a user approved, denied, or cancelled an integration decision.
+
+**Consequences:**
+- Phase 9 is marked complete.
+- Phase 10 is marked in progress.
+- Remote integration implementation remains out of scope.
+- Future integration decisions must be representable as local JSON-LD receipts before any adapter is allowed to transmit data.
+
+---
+
 <!--
   Add new decisions below. Use the format:
 

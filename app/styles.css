@@ -306,7 +306,8 @@ textarea {
   font-size: 0.9rem;
 }
 
-.preflight-checklist {
+.preflight-checklist,
+.receipt-checklist {
   margin-top: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -314,19 +315,22 @@ textarea {
   padding: 12px;
 }
 
-.preflight-checklist h3 {
+.preflight-checklist h3,
+.receipt-checklist h3 {
   margin: 0 0 8px;
   color: var(--accent-strong);
   font-size: 1rem;
 }
 
-.preflight-checklist ol {
+.preflight-checklist ol,
+.receipt-checklist ol {
   margin: 0;
   padding-left: 20px;
   color: var(--muted);
 }
 
-.preflight-checklist li + li {
+.preflight-checklist li + li,
+.receipt-checklist li + li {
   margin-top: 6px;
 }
 

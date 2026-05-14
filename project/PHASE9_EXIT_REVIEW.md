@@ -25,20 +25,20 @@ Phase 9 proves that future optional integrations have a user-visible preflight p
 
 ## Review Checklist
 
-- [ ] Page shows Phase 9.
-- [ ] Integration preflight checklist is visible.
-- [ ] Preflight JSON-LD is visible.
-- [ ] Preflight reports zero active integrations.
-- [ ] Preflight reports zero network requests.
-- [ ] Destination review is required before transmission.
-- [ ] Payload-scope review is required before transmission.
-- [ ] Explicit approval is required before transmission.
-- [ ] Artifact hash and integration decision recording are required.
-- [ ] `src/kernel` remains free of integration coupling.
-- [ ] Core tests remain no-network.
-- [ ] `npm.cmd test` passes.
-- [ ] `npm.cmd run test:purity` passes.
-- [ ] `npm.cmd run build` passes.
+- [x] Page shows Phase 9.
+- [x] Integration preflight checklist is visible.
+- [x] Preflight JSON-LD is visible.
+- [x] Preflight reports zero active integrations.
+- [x] Preflight reports zero network requests.
+- [x] Destination review is required before transmission.
+- [x] Payload-scope review is required before transmission.
+- [x] Explicit approval is required before transmission.
+- [x] Artifact hash and integration decision recording are required.
+- [x] `src/kernel` remains free of integration coupling.
+- [x] Core tests remain no-network.
+- [x] `npm.cmd test` passes.
+- [x] `npm.cmd run test:purity` passes.
+- [x] `npm.cmd run build` passes.
 
 ## Non-Blocking Notes
 
@@ -47,8 +47,8 @@ Phase 9 proves that future optional integrations have a user-visible preflight p
 
 ## Approval
 
-Complete this section at Phase 9 review.
+Approved by human reviewer on 2026-05-14.
 
-- [ ] Approved: Begin Phase 10.
+- [x] Approved: Begin Phase 10.
 - [ ] Approved with non-blocking notes: Begin Phase 10 after recording notes.
 - [ ] Not approved: Address blockers and repeat Phase 9 review.
